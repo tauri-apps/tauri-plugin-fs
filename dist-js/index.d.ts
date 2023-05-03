@@ -353,4 +353,4 @@ declare function exists(path: string): Promise<boolean>;
  */
 declare function metadata(path: string): Promise<Metadata>;
 export type { FsOptions, FsDirOptions, FsTextFileOption, BinaryFileContents, FsBinaryFileOption, FileEntry, Permissions, Metadata, };
-export { BaseDirectory, BaseDirectory as Dir, readTextFile, readBinaryFile, writeTextFile, writeTextFile as writeFile, writeBinaryFile, readDir, createDir, removeDir, copyFile, removeFile, renameFile, exists, metadata };
+export { BaseDirectory, BaseDirectory as Dir, readTextFile, readBinaryFile, writeTextFile, writeTextFile as writeFile, writeBinaryFile, readDir, createDir, removeDir, copyFile, removeFile, renameFile, exists, metadata, };

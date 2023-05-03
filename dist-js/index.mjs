@@ -45,7 +45,7 @@ var BaseDirectory;
 async function readTextFile(filePath, options = {}) {
     return await invoke("plugin:fs|read_text_file", {
         path: filePath,
-        options
+        options,
     });
 }
 /**
@@ -62,7 +62,7 @@ async function readTextFile(filePath, options = {}) {
 async function readBinaryFile(filePath, options = {}) {
     const arr = await invoke("plugin:fs|read_file", {
         path: filePath,
-        options
+        options,
     });
     return Uint8Array.from(arr);
 }
@@ -74,23 +74,23 @@ async function readBinaryFile(filePath, options = {}) {
  * @since 1.0.0
  */
 async function writeTextFile(path, contents, options) {
-    if (typeof options === 'object') {
+    if (typeof options === "object") {
         Object.freeze(options);
     }
-    if (typeof path === 'object') {
+    if (typeof path === "object") {
         Object.freeze(path);
     }
-    const file = { path: '', contents: '' };
+    const file = { path: "", contents: "" };
     let fileOptions = options;
-    if (typeof path === 'string') {
+    if (typeof path === "string") {
         file.path = path;
     }
     else {
         file.path = path.path;
         file.contents = path.contents;
     }
-    if (typeof contents === 'string') {
-        file.contents = contents !== null && contents !== void 0 ? contents : '';
+    if (typeof contents === "string") {
+        file.contents = contents !== null && contents !== void 0 ? contents : "";
     }
     else {
         fileOptions = contents;
@@ -98,7 +98,7 @@ async function writeTextFile(path, contents, options) {
     return await invoke("plugin:fs|write_file", {
         path: file.path,
         contents: Array.from(new TextEncoder().encode(file.contents)),
-        options: fileOptions
+        options: fileOptions,
     });
 }
 /**
@@ -109,25 +109,25 @@ async function writeTextFile(path, contents, options) {
  * @since 1.0.0
  */
 async function writeBinaryFile(path, contents, options) {
-    if (typeof options === 'object') {
+    if (typeof options === "object") {
         Object.freeze(options);
     }
-    if (typeof path === 'object') {
+    if (typeof path === "object") {
         Object.freeze(path);
     }
-    const file = { path: '', contents: [] };
+    const file = { path: "", contents: [] };
     let fileOptions = options;
-    if (typeof path === 'string') {
+    if (typeof path === "string") {
         file.path = path;
     }
     else {
         file.path = path.path;
         file.contents = path.contents;
     }
-    if (contents && 'dir' in contents) {
+    if (contents && "dir" in contents) {
         fileOptions = contents;
     }
-    else if (typeof path === 'string') {
+    else if (typeof path === "string") {
         // @ts-expect-error in this case `contents` is always a BinaryFileContents
         file.contents = contents !== null && contents !== void 0 ? contents : [];
     }
@@ -136,7 +136,7 @@ async function writeBinaryFile(path, contents, options) {
         contents: Array.from(file.contents instanceof ArrayBuffer
             ? new Uint8Array(file.contents)
             : file.contents),
-        options: fileOptions
+        options: fileOptions,
     });
 }
 /**
@@ -162,7 +162,7 @@ async function writeBinaryFile(path, contents, options) {
 async function readDir(dir, options = {}) {
     return await invoke("plugin:fs|read_dir", {
         path: dir,
-        options
+        options,
     });
 }
 /**
@@ -183,7 +183,7 @@ async function readDir(dir, options = {}) {
 async function createDir(dir, options = {}) {
     return await invoke("plugin:fs|create_dir", {
         path: dir,
-        options
+        options,
     });
 }
 /**
@@ -203,7 +203,7 @@ async function createDir(dir, options = {}) {
 async function removeDir(dir, options = {}) {
     return await invoke("plugin:fs|remove_dir", {
         path: dir,
-        options
+        options,
     });
 }
 /**
@@ -223,7 +223,7 @@ async function copyFile(source, destination, options = {}) {
     return await invoke("plugin:fs|copy_file", {
         source,
         destination,
-        options
+        options,
     });
 }
 /**
@@ -242,7 +242,7 @@ async function copyFile(source, destination, options = {}) {
 async function removeFile(file, options = {}) {
     return await invoke("plugin:fs|remove_file", {
         path: file,
-        options
+        options,
     });
 }
 /**
@@ -262,7 +262,7 @@ async function renameFile(oldPath, newPath, options = {}) {
     return await invoke("plugin:fs|rename_file", {
         oldPath,
         newPath,
-        options
+        options,
     });
 }
 /**
