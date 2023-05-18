@@ -1,3 +1,4 @@
+import { BaseDirectory } from "@tauri-apps/api/path";
 interface Permissions {
     /**
      * `true` if these permissions describe a readonly (unwritable) file.
@@ -82,34 +83,6 @@ interface Metadata {
      * The number of blocks allocated to the file, in 512-byte units. Only available on Unix.
      */
     blocks: number | undefined;
-}
-/**
- * @since 1.0.0
- */
-declare enum BaseDirectory {
-    Audio = 1,
-    Cache = 2,
-    Config = 3,
-    Data = 4,
-    LocalData = 5,
-    Document = 6,
-    Download = 7,
-    Picture = 8,
-    Public = 9,
-    Video = 10,
-    Resource = 11,
-    Temp = 12,
-    AppConfig = 13,
-    AppData = 14,
-    AppLocalData = 15,
-    AppCache = 16,
-    AppLog = 17,
-    Desktop = 18,
-    Executable = 19,
-    Font = 20,
-    Home = 21,
-    Runtime = 22,
-    Template = 23
 }
 /**
  * @since 1.0.0

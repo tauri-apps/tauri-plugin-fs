@@ -1,36 +1,7 @@
 import { invoke } from '@tauri-apps/api/tauri';
+export { BaseDirectory, BaseDirectory as Dir } from '@tauri-apps/api/path';
 
 // Copyright 2019-2023 Tauri Programme within The Commons Conservancy
-// TODO: pull BaseDirectory from @tauri-apps/api/path
-/**
- * @since 1.0.0
- */
-var BaseDirectory;
-(function (BaseDirectory) {
-    BaseDirectory[BaseDirectory["Audio"] = 1] = "Audio";
-    BaseDirectory[BaseDirectory["Cache"] = 2] = "Cache";
-    BaseDirectory[BaseDirectory["Config"] = 3] = "Config";
-    BaseDirectory[BaseDirectory["Data"] = 4] = "Data";
-    BaseDirectory[BaseDirectory["LocalData"] = 5] = "LocalData";
-    BaseDirectory[BaseDirectory["Document"] = 6] = "Document";
-    BaseDirectory[BaseDirectory["Download"] = 7] = "Download";
-    BaseDirectory[BaseDirectory["Picture"] = 8] = "Picture";
-    BaseDirectory[BaseDirectory["Public"] = 9] = "Public";
-    BaseDirectory[BaseDirectory["Video"] = 10] = "Video";
-    BaseDirectory[BaseDirectory["Resource"] = 11] = "Resource";
-    BaseDirectory[BaseDirectory["Temp"] = 12] = "Temp";
-    BaseDirectory[BaseDirectory["AppConfig"] = 13] = "AppConfig";
-    BaseDirectory[BaseDirectory["AppData"] = 14] = "AppData";
-    BaseDirectory[BaseDirectory["AppLocalData"] = 15] = "AppLocalData";
-    BaseDirectory[BaseDirectory["AppCache"] = 16] = "AppCache";
-    BaseDirectory[BaseDirectory["AppLog"] = 17] = "AppLog";
-    BaseDirectory[BaseDirectory["Desktop"] = 18] = "Desktop";
-    BaseDirectory[BaseDirectory["Executable"] = 19] = "Executable";
-    BaseDirectory[BaseDirectory["Font"] = 20] = "Font";
-    BaseDirectory[BaseDirectory["Home"] = 21] = "Home";
-    BaseDirectory[BaseDirectory["Runtime"] = 22] = "Runtime";
-    BaseDirectory[BaseDirectory["Template"] = 23] = "Template";
-})(BaseDirectory || (BaseDirectory = {}));
 /**
  * Reads a file as an UTF-8 encoded string.
  * @example
@@ -298,5 +269,5 @@ async function metadata(path) {
     });
 }
 
-export { BaseDirectory, BaseDirectory as Dir, copyFile, createDir, exists, metadata, readBinaryFile, readDir, readTextFile, removeDir, removeFile, renameFile, writeBinaryFile, writeTextFile as writeFile, writeTextFile };
+export { copyFile, createDir, exists, metadata, readBinaryFile, readDir, readTextFile, removeDir, removeFile, renameFile, writeBinaryFile, writeTextFile as writeFile, writeTextFile };
 //# sourceMappingURL=index.mjs.map
