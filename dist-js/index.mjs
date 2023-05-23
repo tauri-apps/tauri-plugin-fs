@@ -1,4 +1,3 @@
-import { invoke } from '@tauri-apps/api/tauri';
 export { BaseDirectory, BaseDirectory as Dir } from '@tauri-apps/api/path';
 
 // Copyright 2019-2023 Tauri Programme within The Commons Conservancy
@@ -14,7 +13,7 @@ export { BaseDirectory, BaseDirectory as Dir } from '@tauri-apps/api/path';
  * @since 1.0.0
  */
 async function readTextFile(filePath, options = {}) {
-    return await invoke("plugin:fs|read_text_file", {
+    return await window.__TAURI_INVOKE__("plugin:fs|read_text_file", {
         path: filePath,
         options,
     });
@@ -31,7 +30,7 @@ async function readTextFile(filePath, options = {}) {
  * @since 1.0.0
  */
 async function readBinaryFile(filePath, options = {}) {
-    const arr = await invoke("plugin:fs|read_file", {
+    const arr = await window.__TAURI_INVOKE__("plugin:fs|read_file", {
         path: filePath,
         options,
     });
@@ -66,7 +65,7 @@ async function writeTextFile(path, contents, options) {
     else {
         fileOptions = contents;
     }
-    return await invoke("plugin:fs|write_file", {
+    return await window.__TAURI_INVOKE__("plugin:fs|write_file", {
         path: file.path,
         contents: Array.from(new TextEncoder().encode(file.contents)),
         options: fileOptions,
@@ -102,7 +101,7 @@ async function writeBinaryFile(path, contents, options) {
         // @ts-expect-error in this case `contents` is always a BinaryFileContents
         file.contents = contents !== null && contents !== void 0 ? contents : [];
     }
-    return await invoke("plugin:fs|write_binary_file", {
+    return await window.__TAURI_INVOKE__("plugin:fs|write_binary_file", {
         path: file.path,
         contents: Array.from(file.contents instanceof ArrayBuffer
             ? new Uint8Array(file.contents)
@@ -131,7 +130,7 @@ async function writeBinaryFile(path, contents, options) {
  * @since 1.0.0
  */
 async function readDir(dir, options = {}) {
-    return await invoke("plugin:fs|read_dir", {
+    return await window.__TAURI_INVOKE__("plugin:fs|read_dir", {
         path: dir,
         options,
     });
@@ -152,7 +151,7 @@ async function readDir(dir, options = {}) {
  * @since 1.0.0
  */
 async function createDir(dir, options = {}) {
-    return await invoke("plugin:fs|create_dir", {
+    return await window.__TAURI_INVOKE__("plugin:fs|create_dir", {
         path: dir,
         options,
     });
@@ -172,7 +171,7 @@ async function createDir(dir, options = {}) {
  * @since 1.0.0
  */
 async function removeDir(dir, options = {}) {
-    return await invoke("plugin:fs|remove_dir", {
+    return await window.__TAURI_INVOKE__("plugin:fs|remove_dir", {
         path: dir,
         options,
     });
@@ -191,7 +190,7 @@ async function removeDir(dir, options = {}) {
  * @since 1.0.0
  */
 async function copyFile(source, destination, options = {}) {
-    return await invoke("plugin:fs|copy_file", {
+    return await window.__TAURI_INVOKE__("plugin:fs|copy_file", {
         source,
         destination,
         options,
@@ -211,7 +210,7 @@ async function copyFile(source, destination, options = {}) {
  * @since 1.0.0
  */
 async function removeFile(file, options = {}) {
-    return await invoke("plugin:fs|remove_file", {
+    return await window.__TAURI_INVOKE__("plugin:fs|remove_file", {
         path: file,
         options,
     });
@@ -230,7 +229,7 @@ async function removeFile(file, options = {}) {
  * @since 1.0.0
  */
 async function renameFile(oldPath, newPath, options = {}) {
-    return await invoke("plugin:fs|rename_file", {
+    return await window.__TAURI_INVOKE__("plugin:fs|rename_file", {
         oldPath,
         newPath,
         options,
@@ -248,7 +247,7 @@ async function renameFile(oldPath, newPath, options = {}) {
  * @since 1.0.0
  */
 async function exists(path) {
-    return await invoke("plugin:fs|exists", { path });
+    return await window.__TAURI_INVOKE__("plugin:fs|exists", { path });
 }
 /**
  * Returns the metadata for the given path.
@@ -256,9 +255,11 @@ async function exists(path) {
  * @since 1.0.0
  */
 async function metadata(path) {
-    return await invoke("plugin:fs|metadata", {
+    return await window
+        .__TAURI_INVOKE__("plugin:fs|metadata", {
         path,
-    }).then((metadata) => {
+    })
+        .then((metadata) => {
         const { accessedAtMs, createdAtMs, modifiedAtMs, ...data } = metadata;
         return {
             accessedAt: new Date(accessedAtMs),

@@ -1,4 +1,51 @@
+/**
+ * Access the file system.
+ *
+ * ## Security
+ *
+ * This module prevents path traversal, not allowing absolute paths or parent dir components
+ * (i.e. "/usr/path/to/file" or "../path/to/file" paths are not allowed).
+ * Paths accessed with this API must be relative to one of the {@link BaseDirectory | base directories}
+ * so if you need access to arbitrary filesystem paths, you must write such logic on the core layer instead.
+ *
+ * The API has a scope configuration that forces you to restrict the paths that can be accessed using glob patterns.
+ *
+ * The scope configuration is an array of glob patterns describing folder paths that are allowed.
+ * For instance, this scope configuration only allows accessing files on the
+ * *databases* folder of the {@link path.appDataDir | $APPDATA directory}:
+ * ```json
+ * {
+ *   "plugins": {
+ *     "fs": {
+ *       "scope": ["$APPDATA/databases/*"]
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * Notice the use of the `$APPDATA` variable. The value is injected at runtime, resolving to the {@link path.appDataDir | app data directory}.
+ * The available variables are:
+ * {@link path.appConfigDir | `$APPCONFIG`}, {@link path.appDataDir | `$APPDATA`}, {@link path.appLocalDataDir | `$APPLOCALDATA`},
+ * {@link path.appCacheDir | `$APPCACHE`}, {@link path.appLogDir | `$APPLOG`},
+ * {@link path.audioDir | `$AUDIO`}, {@link path.cacheDir | `$CACHE`}, {@link path.configDir | `$CONFIG`}, {@link path.dataDir | `$DATA`},
+ * {@link path.localDataDir | `$LOCALDATA`}, {@link path.desktopDir | `$DESKTOP`}, {@link path.documentDir | `$DOCUMENT`},
+ * {@link path.downloadDir | `$DOWNLOAD`}, {@link path.executableDir | `$EXE`}, {@link path.fontDir | `$FONT`}, {@link path.homeDir | `$HOME`},
+ * {@link path.pictureDir | `$PICTURE`}, {@link path.publicDir | `$PUBLIC`}, {@link path.runtimeDir | `$RUNTIME`},
+ * {@link path.templateDir | `$TEMPLATE`}, {@link path.videoDir | `$VIDEO`}, {@link path.resourceDir | `$RESOURCE`},
+ * {@link os.tempdir | `$TEMP`}.
+ *
+ * Trying to execute any API with a URL not configured on the scope results in a promise rejection due to denied access.
+ *
+ * Note that this scope applies to **all** APIs on this module.
+ *
+ * @module
+ */
 import { BaseDirectory } from "@tauri-apps/api/path";
+declare global {
+    interface Window {
+        __TAURI_INVOKE__: <T>(cmd: string, args?: unknown) => Promise<T>;
+    }
+}
 interface Permissions {
     /**
      * `true` if these permissions describe a readonly (unwritable) file.
