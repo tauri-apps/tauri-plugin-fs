@@ -132,13 +132,13 @@ interface Metadata {
     blocks: number | undefined;
 }
 /**
- * @since 1.0.0
+ * @since 2.0.0
  */
 interface FsOptions {
     dir?: BaseDirectory;
 }
 /**
- * @since 1.0.0
+ * @since 2.0.0
  */
 interface FsDirOptions {
     dir?: BaseDirectory;
@@ -147,7 +147,7 @@ interface FsDirOptions {
 /**
  * Options object used to write a UTF-8 string to a file.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 interface FsTextFileOption {
     /** Path to the file to write. */
@@ -159,7 +159,7 @@ type BinaryFileContents = Iterable<number> | ArrayLike<number> | ArrayBuffer;
 /**
  * Options object used to write a binary data to a file.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 interface FsBinaryFileOption {
     /** Path to the file to write. */
@@ -168,7 +168,7 @@ interface FsBinaryFileOption {
     contents: BinaryFileContents;
 }
 /**
- * @since 1.0.0
+ * @since 2.0.0
  */
 interface FileEntry {
     path: string;
@@ -189,7 +189,7 @@ interface FileEntry {
  * const contents = await readTextFile('app.conf', { dir: BaseDirectory.AppConfig });
  * ```
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function readTextFile(filePath: string, options?: FsOptions): Promise<string>;
 /**
@@ -201,7 +201,7 @@ declare function readTextFile(filePath: string, options?: FsOptions): Promise<st
  * const contents = await readBinaryFile('avatar.png', { dir: BaseDirectory.Resource });
  * ```
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function readBinaryFile(filePath: string, options?: FsOptions): Promise<Uint8Array>;
 /**
@@ -213,7 +213,7 @@ declare function readBinaryFile(filePath: string, options?: FsOptions): Promise<
  * await writeTextFile('app.conf', 'file contents', { dir: BaseDirectory.AppConfig });
  * ```
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function writeTextFile(path: string, contents: string, options?: FsOptions): Promise<void>;
 /**
@@ -226,7 +226,7 @@ declare function writeTextFile(path: string, contents: string, options?: FsOptio
  * ```
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function writeTextFile(file: FsTextFileOption, options?: FsOptions): Promise<void>;
 /**
@@ -241,7 +241,7 @@ declare function writeTextFile(file: FsTextFileOption, options?: FsOptions): Pro
  * @param options Configuration object.
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function writeBinaryFile(path: string, contents: BinaryFileContents, options?: FsOptions): Promise<void>;
 /**
@@ -257,7 +257,7 @@ declare function writeBinaryFile(path: string, contents: BinaryFileContents, opt
  * @param options Configuration object.
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function writeBinaryFile(file: FsBinaryFileOption, options?: FsOptions): Promise<void>;
 /**
@@ -278,7 +278,7 @@ declare function writeBinaryFile(file: FsBinaryFileOption, options?: FsOptions):
  * }
  * ```
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function readDir(dir: string, options?: FsDirOptions): Promise<FileEntry[]>;
 /**
@@ -294,7 +294,7 @@ declare function readDir(dir: string, options?: FsDirOptions): Promise<FileEntry
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function createDir(dir: string, options?: FsDirOptions): Promise<void>;
 /**
@@ -309,7 +309,7 @@ declare function createDir(dir: string, options?: FsDirOptions): Promise<void>;
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function removeDir(dir: string, options?: FsDirOptions): Promise<void>;
 /**
@@ -323,7 +323,7 @@ declare function removeDir(dir: string, options?: FsDirOptions): Promise<void>;
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function copyFile(source: string, destination: string, options?: FsOptions): Promise<void>;
 /**
@@ -337,7 +337,7 @@ declare function copyFile(source: string, destination: string, options?: FsOptio
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function removeFile(file: string, options?: FsOptions): Promise<void>;
 /**
@@ -351,7 +351,7 @@ declare function removeFile(file: string, options?: FsOptions): Promise<void>;
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function renameFile(oldPath: string, newPath: string, options?: FsOptions): Promise<void>;
 /**
@@ -363,13 +363,13 @@ declare function renameFile(oldPath: string, newPath: string, options?: FsOption
  * await exists('avatar.png', { dir: BaseDirectory.AppData });
  * ```
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function exists(path: string): Promise<boolean>;
 /**
  * Returns the metadata for the given path.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 declare function metadata(path: string): Promise<Metadata>;
 export type { FsOptions, FsDirOptions, FsTextFileOption, BinaryFileContents, FsBinaryFileOption, FileEntry, Permissions, Metadata, };

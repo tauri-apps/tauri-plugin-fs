@@ -10,7 +10,7 @@ export { BaseDirectory, BaseDirectory as Dir } from '@tauri-apps/api/path';
  * const contents = await readTextFile('app.conf', { dir: BaseDirectory.AppConfig });
  * ```
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function readTextFile(filePath, options = {}) {
     return await window.__TAURI_INVOKE__("plugin:fs|read_text_file", {
@@ -27,7 +27,7 @@ async function readTextFile(filePath, options = {}) {
  * const contents = await readBinaryFile('avatar.png', { dir: BaseDirectory.Resource });
  * ```
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function readBinaryFile(filePath, options = {}) {
     const arr = await window.__TAURI_INVOKE__("plugin:fs|read_file", {
@@ -41,7 +41,7 @@ async function readBinaryFile(filePath, options = {}) {
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function writeTextFile(path, contents, options) {
     if (typeof options === "object") {
@@ -76,7 +76,7 @@ async function writeTextFile(path, contents, options) {
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function writeBinaryFile(path, contents, options) {
     if (typeof options === "object") {
@@ -127,7 +127,7 @@ async function writeBinaryFile(path, contents, options) {
  * }
  * ```
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function readDir(dir, options = {}) {
     return await window.__TAURI_INVOKE__("plugin:fs|read_dir", {
@@ -148,7 +148,7 @@ async function readDir(dir, options = {}) {
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function createDir(dir, options = {}) {
     return await window.__TAURI_INVOKE__("plugin:fs|create_dir", {
@@ -168,7 +168,7 @@ async function createDir(dir, options = {}) {
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function removeDir(dir, options = {}) {
     return await window.__TAURI_INVOKE__("plugin:fs|remove_dir", {
@@ -187,7 +187,7 @@ async function removeDir(dir, options = {}) {
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function copyFile(source, destination, options = {}) {
     return await window.__TAURI_INVOKE__("plugin:fs|copy_file", {
@@ -207,7 +207,7 @@ async function copyFile(source, destination, options = {}) {
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function removeFile(file, options = {}) {
     return await window.__TAURI_INVOKE__("plugin:fs|remove_file", {
@@ -226,7 +226,7 @@ async function removeFile(file, options = {}) {
  *
  * @returns A promise indicating the success or failure of the operation.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function renameFile(oldPath, newPath, options = {}) {
     return await window.__TAURI_INVOKE__("plugin:fs|rename_file", {
@@ -244,7 +244,7 @@ async function renameFile(oldPath, newPath, options = {}) {
  * await exists('avatar.png', { dir: BaseDirectory.AppData });
  * ```
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function exists(path) {
     return await window.__TAURI_INVOKE__("plugin:fs|exists", { path });
@@ -252,7 +252,7 @@ async function exists(path) {
 /**
  * Returns the metadata for the given path.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 async function metadata(path) {
     return await window
