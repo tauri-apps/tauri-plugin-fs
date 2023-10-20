@@ -41,11 +41,6 @@
  * @module
  */
 import { BaseDirectory } from "@tauri-apps/api/path";
-declare global {
-    interface Window {
-        __TAURI_INVOKE__: <T>(cmd: string, args?: unknown) => Promise<T>;
-    }
-}
 interface Permissions {
     /**
      * `true` if these permissions describe a readonly (unwritable) file.
