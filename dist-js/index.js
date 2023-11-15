@@ -1,84 +1,5 @@
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol */
-
-
-typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-    var e = new Error(message);
-    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
-
-/**
- * Sends a message to the backend.
- * @example
- * ```typescript
- * import { invoke } from '@tauri-apps/api/primitives';
- * await invoke('login', { user: 'tauri', password: 'poiwe3h4r5ip3yrhtew9ty' });
- * ```
- *
- * @param cmd The command name.
- * @param args The optional arguments to pass to the command.
- * @param options The request options.
- * @return A promise resolving or rejecting to the backend response.
- *
- * @since 1.0.0
- */
-async function invoke(cmd, args = {}, options) {
-    return window.__TAURI_INTERNALS__.invoke(cmd, args, options);
-}
-
-// Copyright 2019-2023 Tauri Programme within The Commons Conservancy
-// SPDX-License-Identifier: Apache-2.0
-// SPDX-License-Identifier: MIT
-/**
- * The path module provides utilities for working with file and directory paths.
- *
- * This package is also accessible with `window.__TAURI__.path` when [`build.withGlobalTauri`](https://tauri.app/v1/api/config/#buildconfig.withglobaltauri) in `tauri.conf.json` is set to `true`.
- *
- * It is recommended to allowlist only the APIs you use for optimal bundle size and security.
- * @module
- */
-/**
- * @since 2.0.0
- */
-var BaseDirectory;
-(function (BaseDirectory) {
-    BaseDirectory[BaseDirectory["Audio"] = 1] = "Audio";
-    BaseDirectory[BaseDirectory["Cache"] = 2] = "Cache";
-    BaseDirectory[BaseDirectory["Config"] = 3] = "Config";
-    BaseDirectory[BaseDirectory["Data"] = 4] = "Data";
-    BaseDirectory[BaseDirectory["LocalData"] = 5] = "LocalData";
-    BaseDirectory[BaseDirectory["Document"] = 6] = "Document";
-    BaseDirectory[BaseDirectory["Download"] = 7] = "Download";
-    BaseDirectory[BaseDirectory["Picture"] = 8] = "Picture";
-    BaseDirectory[BaseDirectory["Public"] = 9] = "Public";
-    BaseDirectory[BaseDirectory["Video"] = 10] = "Video";
-    BaseDirectory[BaseDirectory["Resource"] = 11] = "Resource";
-    BaseDirectory[BaseDirectory["Temp"] = 12] = "Temp";
-    BaseDirectory[BaseDirectory["AppConfig"] = 13] = "AppConfig";
-    BaseDirectory[BaseDirectory["AppData"] = 14] = "AppData";
-    BaseDirectory[BaseDirectory["AppLocalData"] = 15] = "AppLocalData";
-    BaseDirectory[BaseDirectory["AppCache"] = 16] = "AppCache";
-    BaseDirectory[BaseDirectory["AppLog"] = 17] = "AppLog";
-    BaseDirectory[BaseDirectory["Desktop"] = 18] = "Desktop";
-    BaseDirectory[BaseDirectory["Executable"] = 19] = "Executable";
-    BaseDirectory[BaseDirectory["Font"] = 20] = "Font";
-    BaseDirectory[BaseDirectory["Home"] = 21] = "Home";
-    BaseDirectory[BaseDirectory["Runtime"] = 22] = "Runtime";
-    BaseDirectory[BaseDirectory["Template"] = 23] = "Template";
-})(BaseDirectory || (BaseDirectory = {}));
+export { BaseDirectory, BaseDirectory as Dir } from '@tauri-apps/api/path';
+import { invoke } from '@tauri-apps/api/primitives';
 
 // Copyright 2019-2023 Tauri Programme within The Commons Conservancy
 // SPDX-License-Identifier: Apache-2.0
@@ -184,7 +105,7 @@ async function writeTextFile(path, contents, options) {
         file.contents = path.contents;
     }
     if (typeof contents === "string") {
-        file.contents = contents !== null && contents !== void 0 ? contents : "";
+        file.contents = contents ?? "";
     }
     else {
         fileOptions = contents;
@@ -223,7 +144,7 @@ async function writeBinaryFile(path, contents, options) {
     }
     else if (typeof path === "string") {
         // @ts-expect-error in this case `contents` is always a BinaryFileContents
-        file.contents = contents !== null && contents !== void 0 ? contents : [];
+        file.contents = contents ?? [];
     }
     return await invoke("plugin:fs|write_file", {
         path: file.path,
@@ -392,5 +313,4 @@ async function metadata(path) {
     });
 }
 
-export { BaseDirectory, BaseDirectory as Dir, copyFile, createDir, exists, metadata, readBinaryFile, readDir, readTextFile, removeDir, removeFile, renameFile, writeBinaryFile, writeTextFile as writeFile, writeTextFile };
-//# sourceMappingURL=index.min.js.map
+export { copyFile, createDir, exists, metadata, readBinaryFile, readDir, readTextFile, removeDir, removeFile, renameFile, writeBinaryFile, writeTextFile as writeFile, writeTextFile };
