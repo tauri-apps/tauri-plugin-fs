@@ -360,7 +360,7 @@ declare function renameFile(oldPath: string, newPath: string, options?: FsOption
  *
  * @since 2.0.0
  */
-declare function exists(path: string): Promise<boolean>;
+declare function exists(path: string, options?: FsOptions): Promise<boolean>;
 /**
  * Returns the metadata for the given path.
  *

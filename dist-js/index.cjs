@@ -293,8 +293,8 @@ async function renameFile(oldPath, newPath, options = {}) {
  *
  * @since 2.0.0
  */
-async function exists(path) {
-    return await primitives.invoke("plugin:fs|exists", { path });
+async function exists(path, options = {}) {
+    return await primitives.invoke("plugin:fs|exists", { path, options });
 }
 /**
  * Returns the metadata for the given path.
