@@ -1,5 +1,5 @@
-export { BaseDirectory, BaseDirectory as Dir } from '@tauri-apps/api/path';
-import { invoke } from '@tauri-apps/api/core';
+export { BaseDirectory } from '@tauri-apps/api/path';
+import { Resource, invoke, Channel } from '@tauri-apps/api/core';
 
 // Copyright 2019-2023 Tauri Programme within The Commons Conservancy
 // SPDX-License-Identifier: Apache-2.0
@@ -18,7 +18,7 @@ import { invoke } from '@tauri-apps/api/core';
  *
  * The scope configuration is an array of glob patterns describing folder paths that are allowed.
  * For instance, this scope configuration only allows accessing files on the
- * *databases* folder of the {@link path.appDataDir | $APPDATA directory}:
+ * *databases* folder of the {@link https://beta.tauri.app/2/reference/js/core/namespacepath/#appdatadir | `$APPDATA` directory}:
  * ```json
  * {
  *   "plugins": {
@@ -29,16 +29,32 @@ import { invoke } from '@tauri-apps/api/core';
  * }
  * ```
  *
- * Notice the use of the `$APPDATA` variable. The value is injected at runtime, resolving to the {@link path.appDataDir | app data directory}.
+ * Notice the use of the `$APPDATA` variable. The value is injected at runtime, resolving to the {@link https://beta.tauri.app/2/reference/js/core/namespacepath/#appdatadir | app data directory}.
+ *
  * The available variables are:
- * {@link path.appConfigDir | `$APPCONFIG`}, {@link path.appDataDir | `$APPDATA`}, {@link path.appLocalDataDir | `$APPLOCALDATA`},
- * {@link path.appCacheDir | `$APPCACHE`}, {@link path.appLogDir | `$APPLOG`},
- * {@link path.audioDir | `$AUDIO`}, {@link path.cacheDir | `$CACHE`}, {@link path.configDir | `$CONFIG`}, {@link path.dataDir | `$DATA`},
- * {@link path.localDataDir | `$LOCALDATA`}, {@link path.desktopDir | `$DESKTOP`}, {@link path.documentDir | `$DOCUMENT`},
- * {@link path.downloadDir | `$DOWNLOAD`}, {@link path.executableDir | `$EXE`}, {@link path.fontDir | `$FONT`}, {@link path.homeDir | `$HOME`},
- * {@link path.pictureDir | `$PICTURE`}, {@link path.publicDir | `$PUBLIC`}, {@link path.runtimeDir | `$RUNTIME`},
- * {@link path.templateDir | `$TEMPLATE`}, {@link path.videoDir | `$VIDEO`}, {@link path.resourceDir | `$RESOURCE`},
- * {@link os.tempdir | `$TEMP`}.
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#appconfigdir | $APPCONFIG},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#appdatadir | $APPDATA},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#appLocaldatadir | $APPLOCALDATA},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#appcachedir | $APPCACHE},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#applogdir | $APPLOG},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#audiodir | $AUDIO},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#cachedir | $CACHE},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#configdir | $CONFIG},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#datadir | $DATA},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#localdatadir | $LOCALDATA},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#desktopdir | $DESKTOP},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#documentdir | $DOCUMENT},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#downloaddir | $DOWNLOAD},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#executabledir | $EXE},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#fontdir | $FONT},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#homedir | $HOME},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#picturedir | $PICTURE},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#publicdir | $PUBLIC},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#runtimedir | $RUNTIME},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#templatedir | $TEMPLATE},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#videodir | $VIDEO},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#resourcedir | $RESOURCE},
+ * {@linkcode https://beta.tauri.app/2/reference/js/core/namespacepath/#tempdir | $TEMP}.
  *
  * Trying to execute any API with a URL not configured on the scope results in a promise rejection due to denied access.
  *
@@ -46,127 +62,299 @@ import { invoke } from '@tauri-apps/api/core';
  *
  * @module
  */
+var SeekMode;
+(function (SeekMode) {
+    SeekMode[SeekMode["Start"] = 0] = "Start";
+    SeekMode[SeekMode["Current"] = 1] = "Current";
+    SeekMode[SeekMode["End"] = 2] = "End";
+})(SeekMode || (SeekMode = {}));
+function parseFileInfo(r) {
+    return {
+        isFile: r.isFile,
+        isDirectory: r.isDirectory,
+        isSymlink: r.isSymlink,
+        size: r.size,
+        mtime: r.mtime != null ? new Date(r.mtime) : null,
+        atime: r.atime != null ? new Date(r.atime) : null,
+        birthtime: r.birthtime != null ? new Date(r.birthtime) : null,
+        readonly: r.readonly,
+        fileAttributes: r.fileAttributes,
+        dev: r.dev,
+        ino: r.ino,
+        mode: r.mode,
+        nlink: r.nlink,
+        uid: r.uid,
+        gid: r.gid,
+        rdev: r.rdev,
+        blksize: r.blksize,
+        blocks: r.blocks,
+    };
+}
 /**
- * Reads a file as an UTF-8 encoded string.
+ *  The Tauri abstraction for reading and writing files.
+ *
+ * @since 2.0.0
+ */
+class FileHandle extends Resource {
+    constructor(rid) {
+        super(rid);
+    }
+    /**
+     * Reads up to `p.byteLength` bytes into `p`. It resolves to the number of
+     * bytes read (`0` < `n` <= `p.byteLength`) and rejects if any error
+     * encountered. Even if `read()` resolves to `n` < `p.byteLength`, it may
+     * use all of `p` as scratch space during the call. If some data is
+     * available but not `p.byteLength` bytes, `read()` conventionally resolves
+     * to what is available instead of waiting for more.
+     *
+     * When `read()` encounters end-of-file condition, it resolves to EOF
+     * (`null`).
+     *
+     * When `read()` encounters an error, it rejects with an error.
+     *
+     * Callers should always process the `n` > `0` bytes returned before
+     * considering the EOF (`null`). Doing so correctly handles I/O errors that
+     * happen after reading some bytes and also both of the allowed EOF
+     * behaviors.
+     *
+     * @example
+     * ```typescript
+     * import { open, read, close, BaseDirectory } from "@tauri-apps/plugin-fs"
+     * // if "$APP/foo/bar.txt" contains the text "hello world":
+     * const file = await open("foo/bar.txt", { dir: BaseDirectory.App });
+     * const buf = new Uint8Array(100);
+     * const numberOfBytesRead = await file.read(buf); // 11 bytes
+     * const text = new TextDecoder().decode(buf);  // "hello world"
+     * await close(file.rid);
+     * ```
+     *
+     * @since 2.0.0
+     */
+    async read(buffer) {
+        if (buffer.byteLength === 0) {
+            return 0;
+        }
+        const [data, nread] = await invoke("plugin:fs|read", {
+            rid: this.rid,
+            len: buffer.byteLength,
+        });
+        buffer.set(data);
+        return nread === 0 ? null : nread;
+    }
+    /**
+     * Seek sets the offset for the next `read()` or `write()` to offset,
+     * interpreted according to `whence`: `Start` means relative to the
+     * start of the file, `Current` means relative to the current offset,
+     * and `End` means relative to the end. Seek resolves to the new offset
+     * relative to the start of the file.
+     *
+     * Seeking to an offset before the start of the file is an error. Seeking to
+     * any positive offset is legal, but the behavior of subsequent I/O
+     * operations on the underlying object is implementation-dependent.
+     * It returns the number of cursor position.
+     *
+     * @example
+     * ```typescript
+     * import { open, seek, write, SeekMode, BaseDirectory } from '@tauri-apps/plugin-fs';
+     *
+     * // Given hello.txt pointing to file with "Hello world", which is 11 bytes long:
+     * const file = await open('hello.txt', { read: true, write: true, truncate: true, create: true, dir: BaseDirectory.App });
+     * await file.write(new TextEncoder().encode("Hello world"), { dir: BaseDirectory.App });
+     *
+     * // Seek 6 bytes from the start of the file
+     * console.log(await file.seek(6, SeekMode.Start)); // "6"
+     * // Seek 2 more bytes from the current position
+     * console.log(await file.seek(2, SeekMode.Current)); // "8"
+     * // Seek backwards 2 bytes from the end of the file
+     * console.log(await file.seek(-2, SeekMode.End)); // "9" (e.g. 11-2)
+     * ```
+     *
+     * @since 2.0.0
+     */
+    async seek(offset, whence) {
+        return invoke("plugin:fs|seek", {
+            rid: this.rid,
+            offset,
+            whence,
+        });
+    }
+    /**
+     * Returns a {@linkcode FileInfo } for this file.
+     *
+     * @example
+     * ```typescript
+     * import { open, fstat, BaseDirectory } from '@tauri-apps/plugin-fs';
+     * const file = await open("file.txt", { read: true, dir: BaseDirectory.App });
+     * const fileInfo = await fstat(file.rid);
+     * console.log(fileInfo.isFile); // true
+     * ```
+     *
+     * @since 2.0.0
+     */
+    async stat() {
+        const res = await invoke("plugin:fs|fstat", {
+            rid: this.rid,
+        });
+        return parseFileInfo(res);
+    }
+    /**
+     * Truncates or extends this file, to reach the specified `len`.
+     * If `len` is not specified then the entire file contents are truncated.
+     *
+     * @example
+     * ```typescript
+     * import { ftruncate, open, write, read, BaseDirectory } from '@tauri-apps/plugin-fs';
+     *
+     * // truncate the entire file
+     * const file = await open("my_file.txt", { read: true, write: true, create: true, dir: BaseDirectory.App });
+     * await ftruncate(file.rid);
+     *
+     * // truncate part of the file
+     * const file = await open("my_file.txt", { read: true, write: true, create: true, dir: BaseDirectory.App });
+     * await write(file.rid, new TextEncoder().encode("Hello World"));
+     * await ftruncate(file.rid, 7);
+     * const data = new Uint8Array(32);
+     * await read(file.rid, data);
+     * console.log(new TextDecoder().decode(data)); // Hello W
+     * ```
+     *
+     * @since 2.0.0
+     */
+    async truncate(len) {
+        return invoke("plugin:fs|ftruncate", {
+            rid: this.rid,
+            len,
+        });
+    }
+    /**
+     * Writes `p.byteLength` bytes from `p` to the underlying data stream. It
+     * resolves to the number of bytes written from `p` (`0` <= `n` <=
+     * `p.byteLength`) or reject with the error encountered that caused the
+     * write to stop early. `write()` must reject with a non-null error if
+     * would resolve to `n` < `p.byteLength`. `write()` must not modify the
+     * slice data, even temporarily.
+     *
+     * @example
+     * ```typescript
+     * import { open, write, close, BaseDirectory } from '@tauri-apps/plugin-fs';
+     * const encoder = new TextEncoder();
+     * const data = encoder.encode("Hello world");
+     * const file = await open("bar.txt", { write: true, dir: BaseDirectory.App });
+     * const bytesWritten = await write(file.rid, data); // 11
+     * await close(file.rid);
+     * ```
+     *
+     * @since 2.0.0
+     */
+    async write(data) {
+        return invoke("plugin:fs|write", {
+            rid: this.rid,
+            data: Array.from(data),
+        });
+    }
+}
+/**
+ * Creates a file if none exists or truncates an existing file and resolves to
+ *  an instance of {@linkcode FileHandle }.
+ *
  * @example
  * ```typescript
- * import { readTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
- * // Read the text file in the `$APPCONFIG/app.conf` path
- * const contents = await readTextFile('app.conf', { dir: BaseDirectory.AppConfig });
+ * import { create, BaseDirectory } from "@tauri-apps/plugin-fs"
+ * const file = await create("foo/bar.txt", { dir: BaseDirectory.App });
  * ```
  *
  * @since 2.0.0
  */
-async function readTextFile(filePath, options = {}) {
-    return await invoke("plugin:fs|read_text_file", {
-        path: filePath,
+async function create(path, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    const rid = await invoke("plugin:fs|create", {
+        path: path instanceof URL ? path.toString() : path,
         options,
     });
+    return new FileHandle(rid);
 }
 /**
- * Reads a file as byte array.
+ * Open a file and resolve to an instance of {@linkcode FileHandle}. The
+ * file does not need to previously exist if using the `create` or `createNew`
+ * open options. It is the callers responsibility to close the file when finished
+ * with it.
+ *
  * @example
  * ```typescript
- * import { readBinaryFile, BaseDirectory } from '@tauri-apps/plugin-fs';
- * // Read the image file in the `$RESOURCEDIR/avatar.png` path
- * const contents = await readBinaryFile('avatar.png', { dir: BaseDirectory.Resource });
+ * import { open, BaseDirectory } from "@tauri-apps/plugin-fs"
+ * const file = await open("foo/bar.txt", { read: true, write: true, dir: BaseDirectory.App });
+ * // Do work with file
+ * await close(file.rid);
  * ```
  *
  * @since 2.0.0
  */
-async function readBinaryFile(filePath, options = {}) {
-    const arr = await invoke("plugin:fs|read_file", {
-        path: filePath,
+async function open(path, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    const rid = await invoke("plugin:fs|open", {
+        path: path instanceof URL ? path.toString() : path,
         options,
     });
-    return Uint8Array.from(arr);
+    return new FileHandle(rid);
 }
 /**
- * Writes a UTF-8 text file.
- *
- * @returns A promise indicating the success or failure of the operation.
+ * Copies the contents and permissions of one file to another specified path, by default creating a new file if needed, else overwriting.
+ * @example
+ * ```typescript
+ * import { copyFile, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * await copyFile('app.conf', 'app.conf.bk', { dir: BaseDirectory.App });
+ * ```
  *
  * @since 2.0.0
  */
-async function writeTextFile(path, contents, options) {
-    if (typeof options === "object") {
-        Object.freeze(options);
+async function copyFile(fromPath, toPath, options) {
+    if ((fromPath instanceof URL && fromPath.protocol !== "file:") ||
+        (toPath instanceof URL && toPath.protocol !== "file:")) {
+        throw new TypeError("Must be a file URL.");
     }
-    if (typeof path === "object") {
-        Object.freeze(path);
-    }
-    const file = { path: "", contents: "" };
-    let fileOptions = options;
-    if (typeof path === "string") {
-        file.path = path;
-    }
-    else {
-        file.path = path.path;
-        file.contents = path.contents;
-    }
-    if (typeof contents === "string") {
-        file.contents = contents ?? "";
-    }
-    else {
-        fileOptions = contents;
-    }
-    return await invoke("plugin:fs|write_file", {
-        path: file.path,
-        contents: Array.from(new TextEncoder().encode(file.contents)),
-        options: fileOptions,
+    return invoke("plugin:fs|copy_file", {
+        fromPath: fromPath instanceof URL ? fromPath.toString() : fromPath,
+        toPath: toPath instanceof URL ? toPath.toString() : toPath,
+        options,
     });
 }
 /**
- * Writes a byte array content to a file.
- *
- * @returns A promise indicating the success or failure of the operation.
+ * Creates a new directory with the specified path.
+ * @example
+ * ```typescript
+ * import { mkdir, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * await mkdir('users', { dir: BaseDirectory.App });
+ * ```
  *
  * @since 2.0.0
  */
-async function writeBinaryFile(path, contents, options) {
-    if (typeof options === "object") {
-        Object.freeze(options);
+async function mkdir(path, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
     }
-    if (typeof path === "object") {
-        Object.freeze(path);
-    }
-    const file = { path: "", contents: [] };
-    let fileOptions = options;
-    if (typeof path === "string") {
-        file.path = path;
-    }
-    else {
-        file.path = path.path;
-        file.contents = path.contents;
-    }
-    if (contents && "dir" in contents) {
-        fileOptions = contents;
-    }
-    else if (typeof path === "string") {
-        // @ts-expect-error in this case `contents` is always a BinaryFileContents
-        file.contents = contents ?? [];
-    }
-    return await invoke("plugin:fs|write_file", {
-        path: file.path,
-        contents: Array.from(file.contents instanceof ArrayBuffer
-            ? new Uint8Array(file.contents)
-            : file.contents),
-        options: fileOptions,
+    return invoke("plugin:fs|mkdir", {
+        path: path instanceof URL ? path.toString() : path,
+        options,
     });
 }
 /**
- * List directory files.
+ * Reads the directory given by path and returns an array of `DirEntry`.
  * @example
  * ```typescript
  * import { readDir, BaseDirectory } from '@tauri-apps/plugin-fs';
- * // Reads the `$APPDATA/users` directory recursively
- * const entries = await readDir('users', { dir: BaseDirectory.AppData, recursive: true });
- *
- * function processEntries(entries) {
+ * const dir = "users"
+ * const entries = await readDir('users', { dir: BaseDirectory.App });
+ * processEntriesRecursive(dir, entries);
+ * async function processEntriesRecursive(parent, entries) {
  *   for (const entry of entries) {
- *     console.log(`Entry: ${entry.path}`);
- *     if (entry.children) {
- *       processEntries(entry.children)
+ *     console.log(`Entry: ${entry.name}`);
+ *     if (entry.isDirectory) {
+ *        const dir = parent + entry.name;
+ *       processEntriesRecursive(dir, await readDir(dir, { dir: BaseDirectory.App }))
  *     }
  *   }
  * }
@@ -174,109 +362,258 @@ async function writeBinaryFile(path, contents, options) {
  *
  * @since 2.0.0
  */
-async function readDir(dir, options = {}) {
-    return await invoke("plugin:fs|read_dir", {
-        path: dir,
+async function readDir(path, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    return invoke("plugin:fs|read_dir", {
+        path: path instanceof URL ? path.toString() : path,
         options,
     });
 }
 /**
- * Creates a directory.
- * If one of the path's parent components doesn't exist
- * and the `recursive` option isn't set to true, the promise will be rejected.
+ * Reads and resolves to the entire contents of a file as an array of bytes.
+ * TextDecoder can be used to transform the bytes to string if required.
  * @example
  * ```typescript
- * import { createDir, BaseDirectory } from '@tauri-apps/plugin-fs';
- * // Create the `$APPDATA/users` directory
- * await createDir('users', { dir: BaseDirectory.AppData, recursive: true });
+ * import { readFile, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * const contents = await readFile('avatar.png', { dir: BaseDirectory.Resource });
  * ```
- *
- * @returns A promise indicating the success or failure of the operation.
  *
  * @since 2.0.0
  */
-async function createDir(dir, options = {}) {
-    return await invoke("plugin:fs|create_dir", {
-        path: dir,
+async function readFile(path, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    const arr = await invoke("plugin:fs|read_file", {
+        path: path instanceof URL ? path.toString() : path,
+        options,
+    });
+    return Uint8Array.from(arr);
+}
+/**
+ * Reads and returns the entire contents of a file as UTF-8 string.
+ * @example
+ * ```typescript
+ * import { readTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * const contents = await readTextFile('app.conf', { dir: BaseDirectory.App });
+ * ```
+ *
+ * @since 2.0.0
+ */
+async function readTextFile(path, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    return invoke("plugin:fs|read_text_file", {
+        path: path instanceof URL ? path.toString() : path,
         options,
     });
 }
 /**
- * Removes a directory.
+ * Returns an async {@linkcode AsyncIterableIterator} over the lines of a file as UTF-8 string.
+ * @example
+ * ```typescript
+ * import { readTextFileLines, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * const lines = await readTextFileLines('app.conf', { dir: BaseDirectory.App });
+ * for await (const line of lines) {
+ *   console.log(line);
+ * }
+ * ```
+ * You could also call {@linkcode AsyncIterableIterator.next} to advance the
+ * iterator so you can lazily read the next line whenever you want.
+ *
+ * @since 2.0.0
+ */
+async function readTextFileLines(path, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    const pathStr = path instanceof URL ? path.toString() : path;
+    return Promise.resolve({
+        path: pathStr,
+        rid: null,
+        async next() {
+            if (!this.rid) {
+                this.rid = await invoke("plugin:fs|read_text_file_lines", {
+                    path: pathStr,
+                    options,
+                });
+            }
+            const [line, done] = await invoke("plugin:fs|read_text_file_lines_next", { rid: this.rid });
+            // an iteration is over, reset rid for next iteration
+            if (done)
+                this.rid = null;
+            return {
+                value: done ? "" : line,
+                done,
+            };
+        },
+        [Symbol.asyncIterator]() {
+            return this;
+        },
+    });
+}
+/**
+ * Removes the named file or directory.
  * If the directory is not empty and the `recursive` option isn't set to true, the promise will be rejected.
  * @example
  * ```typescript
- * import { removeDir, BaseDirectory } from '@tauri-apps/plugin-fs';
- * // Remove the directory `$APPDATA/users`
- * await removeDir('users', { dir: BaseDirectory.AppData });
+ * import { remove, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * await remove('users/file.txt', { dir: BaseDirectory.App });
+ * await remove('users', { dir: BaseDirectory.App });
  * ```
- *
- * @returns A promise indicating the success or failure of the operation.
  *
  * @since 2.0.0
  */
-async function removeDir(dir, options = {}) {
-    return await invoke("plugin:fs|remove_dir", {
-        path: dir,
+async function remove(path, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    return invoke("plugin:fs|remove", {
+        path: path instanceof URL ? path.toString() : path,
         options,
     });
 }
 /**
- * Copies a file to a destination.
+ * Renames (moves) oldpath to newpath. Paths may be files or directories.
+ * If newpath already exists and is not a directory, rename() replaces it.
+ * OS-specific restrictions may apply when oldpath and newpath are in different directories.
+ *
+ * On Unix, this operation does not follow symlinks at either path.
+ *
  * @example
  * ```typescript
- * import { copyFile, BaseDirectory } from '@tauri-apps/plugin-fs';
- * // Copy the `$APPCONFIG/app.conf` file to `$APPCONFIG/app.conf.bk`
- * await copyFile('app.conf', 'app.conf.bk', { dir: BaseDirectory.AppConfig });
+ * import { rename, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * await rename('avatar.png', 'deleted.png', { dir: BaseDirectory.App });
  * ```
- *
- * @returns A promise indicating the success or failure of the operation.
  *
  * @since 2.0.0
  */
-async function copyFile(source, destination, options = {}) {
-    return await invoke("plugin:fs|copy_file", {
-        source,
-        destination,
+async function rename(oldPath, newPath, options) {
+    if ((oldPath instanceof URL && oldPath.protocol !== "file:") ||
+        (newPath instanceof URL && newPath.protocol !== "file:")) {
+        throw new TypeError("Must be a file URL.");
+    }
+    return invoke("plugin:fs|rename", {
+        oldPath: oldPath instanceof URL ? oldPath.toString() : oldPath,
+        newPath: newPath instanceof URL ? newPath.toString() : newPath,
         options,
     });
 }
 /**
- * Removes a file.
+ * Resolves to a {@linkcode FileInfo} for the specified `path`. Will always
+ * follow symlinks but will reject if the symlink points to a path outside of the scope.
+ *
  * @example
  * ```typescript
- * import { removeFile, BaseDirectory } from '@tauri-apps/plugin-fs';
- * // Remove the `$APPConfig/app.conf` file
- * await removeFile('app.conf', { dir: BaseDirectory.AppConfig });
+ * import { stat, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * const fileInfo = await stat("hello.txt", { dir: BaseDirectory.App });
+ * console.log(fileInfo.isFile); // true
  * ```
- *
- * @returns A promise indicating the success or failure of the operation.
  *
  * @since 2.0.0
  */
-async function removeFile(file, options = {}) {
-    return await invoke("plugin:fs|remove_file", {
-        path: file,
+async function stat(path, options) {
+    const res = await invoke("plugin:fs|stat", {
+        path: path instanceof URL ? path.toString() : path,
+        options,
+    });
+    return parseFileInfo(res);
+}
+/**
+ * Resolves to a {@linkcode FileInfo} for the specified `path`. If `path` is a
+ * symlink, information for the symlink will be returned instead of what it
+ * points to.
+ *
+ * @example
+ * ```typescript
+ * import { lstat, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * const fileInfo = await lstat("hello.txt", { dir: BaseDirectory.App });
+ * console.log(fileInfo.isFile); // true
+ * ```
+ *
+ * @since 2.0.0
+ */
+async function lstat(path, options) {
+    const res = await invoke("plugin:fs|lstat", {
+        path: path instanceof URL ? path.toString() : path,
+        options,
+    });
+    return parseFileInfo(res);
+}
+/**
+ * Truncates or extends the specified file, to reach the specified `len`.
+ * If `len` is `0` or not specified, then the entire file contents are truncated.
+ *
+ * @example
+ * ```typescript
+ * import { truncate, readFile, writeFile, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * // truncate the entire file
+ * await truncate("my_file.txt", 0, { dir: BaseDirectory.App });
+ *
+ * // truncate part of the file
+ * let file = "file.txt";
+ * await writeFile(file, new TextEncoder().encode("Hello World"), { dir: BaseDirectory.App });
+ * await truncate(file, 7);
+ * const data = await readFile(file, { dir: BaseDirectory.App });
+ * console.log(new TextDecoder().decode(data));  // "Hello W"
+ * ```
+ *
+ * @since 2.0.0
+ */
+async function truncate(path, len, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    return invoke("plugin:fs|truncate", {
+        path: path instanceof URL ? path.toString() : path,
+        len,
         options,
     });
 }
 /**
- * Renames a file.
+ * Write `data` to the given `path`, by default creating a new file if needed, else overwriting.
  * @example
  * ```typescript
- * import { renameFile, BaseDirectory } from '@tauri-apps/plugin-fs';
- * // Rename the `$APPDATA/avatar.png` file
- * await renameFile('avatar.png', 'deleted.png', { dir: BaseDirectory.AppData });
- * ```
+ * import { writeFile, BaseDirectory } from '@tauri-apps/plugin-fs';
  *
- * @returns A promise indicating the success or failure of the operation.
+ * let encoder = new TextEncoder();
+ * let data = encoder.encode("Hello World");
+ * await writeFile('file.txt', data, { dir: BaseDirectory.App });
+ * ```
  *
  * @since 2.0.0
  */
-async function renameFile(oldPath, newPath, options = {}) {
-    return await invoke("plugin:fs|rename_file", {
-        oldPath,
-        newPath,
+async function writeFile(path, data, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    return invoke("plugin:fs|write_file", {
+        path: path instanceof URL ? path.toString() : path,
+        data: Array.from(data),
+        options,
+    });
+}
+/**
+  * Writes UTF-8 string `data` to the given `path`, by default creating a new file if needed, else overwriting.
+    @example
+  * ```typescript
+  * import { writeTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
+  *
+  * await writeTextFile('file.txt', "Hello world", { dir: BaseDirectory.App });
+  * ```
+  *
+  * @since 2.0.0
+  */
+async function writeTextFile(path, data, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    return invoke("plugin:fs|write_text_file", {
+        path: path instanceof URL ? path.toString() : path,
+        data,
         options,
     });
 }
@@ -291,26 +628,73 @@ async function renameFile(oldPath, newPath, options = {}) {
  *
  * @since 2.0.0
  */
-async function exists(path, options = {}) {
-    return await invoke("plugin:fs|exists", { path, options });
+async function exists(path, options) {
+    if (path instanceof URL && path.protocol !== "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    return invoke("plugin:fs|exists", {
+        path: path instanceof URL ? path.toString() : path,
+        options,
+    });
+}
+async function unwatch(id) {
+    await invoke("plugin:fs|unwatch", { id });
 }
 /**
- * Returns the metadata for the given path.
+ * Watch changes (after a delay) on files or directories.
  *
  * @since 2.0.0
  */
-async function metadata(path) {
-    return await invoke("plugin:fs|metadata", {
-        path,
-    }).then((metadata) => {
-        const { accessedAtMs, createdAtMs, modifiedAtMs, ...data } = metadata;
-        return {
-            accessedAt: new Date(accessedAtMs),
-            createdAt: new Date(createdAtMs),
-            modifiedAt: new Date(modifiedAtMs),
-            ...data,
-        };
+async function watch(paths, cb, options) {
+    const opts = {
+        recursive: false,
+        delayMs: 2000,
+        ...options,
+    };
+    const watchPaths = Array.isArray(paths) ? paths : [paths];
+    for (const path of watchPaths) {
+        if (path instanceof URL && path.protocol !== "file:") {
+            throw new TypeError("Must be a file URL.");
+        }
+    }
+    const onEvent = new Channel();
+    onEvent.onmessage = cb;
+    const rid = await invoke("plugin:fs|watch", {
+        paths: watchPaths.map((p) => (p instanceof URL ? p.toString() : p)),
+        options: opts,
+        onEvent,
     });
+    return () => {
+        void unwatch(rid);
+    };
+}
+/**
+ * Watch changes on files or directories.
+ *
+ * @since 2.0.0
+ */
+async function watchImmediate(paths, cb, options) {
+    const opts = {
+        recursive: false,
+        ...options,
+        delayMs: null,
+    };
+    const watchPaths = Array.isArray(paths) ? paths : [paths];
+    for (const path of watchPaths) {
+        if (path instanceof URL && path.protocol !== "file:") {
+            throw new TypeError("Must be a file URL.");
+        }
+    }
+    const onEvent = new Channel();
+    onEvent.onmessage = cb;
+    const rid = await invoke("plugin:fs|watch", {
+        paths: watchPaths.map((p) => (p instanceof URL ? p.toString() : p)),
+        options: opts,
+        onEvent,
+    });
+    return () => {
+        void unwatch(rid);
+    };
 }
 
-export { copyFile, createDir, exists, metadata, readBinaryFile, readDir, readTextFile, removeDir, removeFile, renameFile, writeBinaryFile, writeTextFile as writeFile, writeTextFile };
+export { FileHandle, SeekMode, copyFile, create, exists, lstat, mkdir, open, readDir, readFile, readTextFile, readTextFileLines, remove, rename, stat, truncate, watch, watchImmediate, writeFile, writeTextFile };
