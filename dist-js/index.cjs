@@ -639,8 +639,8 @@ async function exists(path, options) {
         options,
     });
 }
-async function unwatch(id) {
-    await core.invoke("plugin:fs|unwatch", { id });
+async function unwatch(rid) {
+    await core.invoke("plugin:fs|unwatch", { rid });
 }
 /**
  * Watch changes (after a delay) on files or directories.
