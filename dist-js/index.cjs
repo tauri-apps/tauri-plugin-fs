@@ -699,7 +699,7 @@ async function watchImmediate(paths, cb, options) {
     };
 }
 
-Object.defineProperty(exports, 'BaseDirectory', {
+Object.defineProperty(exports, "BaseDirectory", {
   enumerable: true,
   get: function () { return path.BaseDirectory; }
 });
