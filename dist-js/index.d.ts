@@ -792,7 +792,7 @@ type WatchEventKindModify = {
     kind: "metadata";
     mode: "any" | "access-time" | "write-time" | "permissions" | "ownership" | "extended" | "other";
 } | {
-    kind: "name";
+    kind: "rename";
     mode: "any" | "to" | "from" | "both" | "other";
 } | {
     kind: "other";
