@@ -593,7 +593,7 @@ interface RenameOptions {
  *
  * @since 2.0.0
  */
-declare function rename(oldPath: string | URL, newPath: string | URL, options: RenameOptions): Promise<void>;
+declare function rename(oldPath: string | URL, newPath: string | URL, options?: RenameOptions): Promise<void>;
 /**
  * @since 2.0.0
  */
