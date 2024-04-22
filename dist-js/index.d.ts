@@ -198,7 +198,6 @@ interface FileInfo {
  * @since 2.0.0
  */
 declare class FileHandle extends Resource {
-    constructor(rid: number);
     /**
      * Reads up to `p.byteLength` bytes into `p`. It resolves to the number of
      * bytes read (`0` < `n` <= `p.byteLength`) and rejects if any error
@@ -737,11 +736,11 @@ interface DebouncedWatchOptions extends WatchOptions {
 /**
  * @since 2.0.0
  */
-type WatchEvent = {
+interface WatchEvent {
     type: WatchEventKind;
     paths: string[];
     attrs: unknown;
-};
+}
 /**
  * @since 2.0.0
  */

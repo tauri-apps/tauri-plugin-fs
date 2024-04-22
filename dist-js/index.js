@@ -96,9 +96,6 @@ function parseFileInfo(r) {
  * @since 2.0.0
  */
 class FileHandle extends Resource {
-    constructor(rid) {
-        super(rid);
-    }
     /**
      * Reads up to `p.byteLength` bytes into `p`. It resolves to the number of
      * bytes read (`0` < `n` <= `p.byteLength`) and rejects if any error
@@ -172,7 +169,7 @@ class FileHandle extends Resource {
      * @since 2.0.0
      */
     async seek(offset, whence) {
-        return invoke("plugin:fs|seek", {
+        return await invoke("plugin:fs|seek", {
             rid: this.rid,
             offset,
             whence,
@@ -221,7 +218,7 @@ class FileHandle extends Resource {
      * @since 2.0.0
      */
     async truncate(len) {
-        return invoke("plugin:fs|ftruncate", {
+        await invoke("plugin:fs|ftruncate", {
             rid: this.rid,
             len,
         });
@@ -247,7 +244,7 @@ class FileHandle extends Resource {
      * @since 2.0.0
      */
     async write(data) {
-        return invoke("plugin:fs|write", {
+        return await invoke("plugin:fs|write", {
             rid: this.rid,
             data: Array.from(data),
         });
@@ -316,7 +313,7 @@ async function copyFile(fromPath, toPath, options) {
         (toPath instanceof URL && toPath.protocol !== "file:")) {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|copy_file", {
+    await invoke("plugin:fs|copy_file", {
         fromPath: fromPath instanceof URL ? fromPath.toString() : fromPath,
         toPath: toPath instanceof URL ? toPath.toString() : toPath,
         options,
@@ -336,7 +333,7 @@ async function mkdir(path, options) {
     if (path instanceof URL && path.protocol !== "file:") {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|mkdir", {
+    await invoke("plugin:fs|mkdir", {
         path: path instanceof URL ? path.toString() : path,
         options,
     });
@@ -366,7 +363,7 @@ async function readDir(path, options) {
     if (path instanceof URL && path.protocol !== "file:") {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|read_dir", {
+    return await invoke("plugin:fs|read_dir", {
         path: path instanceof URL ? path.toString() : path,
         options,
     });
@@ -406,7 +403,7 @@ async function readTextFile(path, options) {
     if (path instanceof URL && path.protocol !== "file:") {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|read_text_file", {
+    return await invoke("plugin:fs|read_text_file", {
         path: path instanceof URL ? path.toString() : path,
         options,
     });
@@ -431,11 +428,11 @@ async function readTextFileLines(path, options) {
         throw new TypeError("Must be a file URL.");
     }
     const pathStr = path instanceof URL ? path.toString() : path;
-    return Promise.resolve({
+    return await Promise.resolve({
         path: pathStr,
         rid: null,
         async next() {
-            if (!this.rid) {
+            if (this.rid == null) {
                 this.rid = await invoke("plugin:fs|read_text_file_lines", {
                     path: pathStr,
                     options,
@@ -446,6 +443,7 @@ async function readTextFileLines(path, options) {
             if (done)
                 this.rid = null;
             return {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 value: done ? "" : line,
                 done,
             };
@@ -471,7 +469,7 @@ async function remove(path, options) {
     if (path instanceof URL && path.protocol !== "file:") {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|remove", {
+    await invoke("plugin:fs|remove", {
         path: path instanceof URL ? path.toString() : path,
         options,
     });
@@ -496,7 +494,7 @@ async function rename(oldPath, newPath, options) {
         (newPath instanceof URL && newPath.protocol !== "file:")) {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|rename", {
+    await invoke("plugin:fs|rename", {
         oldPath: oldPath instanceof URL ? oldPath.toString() : oldPath,
         newPath: newPath instanceof URL ? newPath.toString() : newPath,
         options,
@@ -567,7 +565,7 @@ async function truncate(path, len, options) {
     if (path instanceof URL && path.protocol !== "file:") {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|truncate", {
+    await invoke("plugin:fs|truncate", {
         path: path instanceof URL ? path.toString() : path,
         len,
         options,
@@ -590,7 +588,7 @@ async function writeFile(path, data, options) {
     if (path instanceof URL && path.protocol !== "file:") {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|write_file", {
+    await invoke("plugin:fs|write_file", {
         path: path instanceof URL ? path.toString() : path,
         data: Array.from(data),
         options,
@@ -611,7 +609,7 @@ async function writeTextFile(path, data, options) {
     if (path instanceof URL && path.protocol !== "file:") {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|write_text_file", {
+    await invoke("plugin:fs|write_text_file", {
         path: path instanceof URL ? path.toString() : path,
         data,
         options,
@@ -632,7 +630,7 @@ async function exists(path, options) {
     if (path instanceof URL && path.protocol !== "file:") {
         throw new TypeError("Must be a file URL.");
     }
-    return invoke("plugin:fs|exists", {
+    return await invoke("plugin:fs|exists", {
         path: path instanceof URL ? path.toString() : path,
         options,
     });
