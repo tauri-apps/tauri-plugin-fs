@@ -74,9 +74,9 @@ function parseFileInfo(r) {
         isDirectory: r.isDirectory,
         isSymlink: r.isSymlink,
         size: r.size,
-        mtime: r.mtime != null ? new Date(r.mtime) : null,
-        atime: r.atime != null ? new Date(r.atime) : null,
-        birthtime: r.birthtime != null ? new Date(r.birthtime) : null,
+        mtime: r.mtime !== null ? new Date(r.mtime) : null,
+        atime: r.atime !== null ? new Date(r.atime) : null,
+        birthtime: r.birthtime !== null ? new Date(r.birthtime) : null,
         readonly: r.readonly,
         fileAttributes: r.fileAttributes,
         dev: r.dev,
@@ -432,7 +432,7 @@ async function readTextFileLines(path, options) {
         path: pathStr,
         rid: null,
         async next() {
-            if (this.rid == null) {
+            if (this.rid === null) {
                 this.rid = await invoke("plugin:fs|read_text_file_lines", {
                     path: pathStr,
                     options,
