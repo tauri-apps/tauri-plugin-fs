@@ -387,7 +387,9 @@ async function readFile(path, options) {
         path: path instanceof URL ? path.toString() : path,
         options,
     });
-    return Uint8Array.from(arr);
+    return arr instanceof ArrayBuffer
+        ? new Uint8Array(arr)
+        : Uint8Array.from(arr);
 }
 /**
  * Reads and returns the entire contents of a file as UTF-8 string.
@@ -588,10 +590,11 @@ async function writeFile(path, data, options) {
     if (path instanceof URL && path.protocol !== "file:") {
         throw new TypeError("Must be a file URL.");
     }
-    await invoke("plugin:fs|write_file", {
-        path: path instanceof URL ? path.toString() : path,
-        data: Array.from(data),
-        options,
+    await invoke("plugin:fs|write_file", data, {
+        headers: {
+            path: path instanceof URL ? path.toString() : path,
+            options: JSON.stringify(options),
+        },
     });
 }
 /**
