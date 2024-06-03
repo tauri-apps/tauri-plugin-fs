@@ -445,7 +445,6 @@ async function readTextFileLines(path, options) {
             if (done)
                 this.rid = null;
             return {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 value: done ? "" : line,
                 done,
             };
