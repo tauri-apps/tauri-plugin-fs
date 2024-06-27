@@ -345,6 +345,7 @@ async function mkdir(path, options) {
  * @example
  * ```typescript
  * import { readDir, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * import { join } from '@tauri-apps/api/path';
  * const dir = "users"
  * const entries = await readDir('users', { baseDir: BaseDirectory.App });
  * processEntriesRecursive(dir, entries);
@@ -352,7 +353,7 @@ async function mkdir(path, options) {
  *   for (const entry of entries) {
  *     console.log(`Entry: ${entry.name}`);
  *     if (entry.isDirectory) {
- *        const dir = parent + entry.name;
+ *        const dir = await join(parent, entry.name);
  *       processEntriesRecursive(dir, await readDir(dir, { baseDir: BaseDirectory.App }))
  *     }
  *   }
