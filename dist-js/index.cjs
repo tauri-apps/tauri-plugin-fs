@@ -252,7 +252,7 @@ class FileHandle extends core.Resource {
     async write(data) {
         return await core.invoke("plugin:fs|write", {
             rid: this.rid,
-            data: Array.from(data),
+            data,
         });
     }
 }

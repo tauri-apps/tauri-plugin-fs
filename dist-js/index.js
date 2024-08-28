@@ -250,7 +250,7 @@ class FileHandle extends Resource {
     async write(data) {
         return await invoke("plugin:fs|write", {
             rid: this.rid,
-            data: Array.from(data),
+            data,
         });
     }
 }
