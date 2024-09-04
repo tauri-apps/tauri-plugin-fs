@@ -56,8 +56,8 @@
  *
  * @module
  */
-import { BaseDirectory } from "@tauri-apps/api/path";
-import { Resource } from "@tauri-apps/api/core";
+import { BaseDirectory } from '@tauri-apps/api/path';
+import { Resource } from '@tauri-apps/api/core';
 declare enum SeekMode {
     Start = 0,
     Current = 1,
@@ -751,7 +751,7 @@ interface WatchEvent {
 /**
  * @since 2.0.0
  */
-type WatchEventKind = "any" | {
+type WatchEventKind = 'any' | {
     access: WatchEventKindAccess;
 } | {
     create: WatchEventKindCreate;
@@ -759,61 +759,61 @@ type WatchEventKind = "any" | {
     modify: WatchEventKindModify;
 } | {
     remove: WatchEventKindRemove;
-} | "other";
+} | 'other';
 /**
  * @since 2.0.0
  */
 type WatchEventKindAccess = {
-    kind: "any";
+    kind: 'any';
 } | {
-    kind: "close";
-    mode: "any" | "execute" | "read" | "write" | "other";
+    kind: 'close';
+    mode: 'any' | 'execute' | 'read' | 'write' | 'other';
 } | {
-    kind: "open";
-    mode: "any" | "execute" | "read" | "write" | "other";
+    kind: 'open';
+    mode: 'any' | 'execute' | 'read' | 'write' | 'other';
 } | {
-    kind: "other";
+    kind: 'other';
 };
 /**
  * @since 2.0.0
  */
 type WatchEventKindCreate = {
-    kind: "any";
+    kind: 'any';
 } | {
-    kind: "file";
+    kind: 'file';
 } | {
-    kind: "folder";
+    kind: 'folder';
 } | {
-    kind: "other";
+    kind: 'other';
 };
 /**
  * @since 2.0.0
  */
 type WatchEventKindModify = {
-    kind: "any";
+    kind: 'any';
 } | {
-    kind: "data";
-    mode: "any" | "size" | "content" | "other";
+    kind: 'data';
+    mode: 'any' | 'size' | 'content' | 'other';
 } | {
-    kind: "metadata";
-    mode: "any" | "access-time" | "write-time" | "permissions" | "ownership" | "extended" | "other";
+    kind: 'metadata';
+    mode: 'any' | 'access-time' | 'write-time' | 'permissions' | 'ownership' | 'extended' | 'other';
 } | {
-    kind: "rename";
-    mode: "any" | "to" | "from" | "both" | "other";
+    kind: 'rename';
+    mode: 'any' | 'to' | 'from' | 'both' | 'other';
 } | {
-    kind: "other";
+    kind: 'other';
 };
 /**
  * @since 2.0.0
  */
 type WatchEventKindRemove = {
-    kind: "any";
+    kind: 'any';
 } | {
-    kind: "file";
+    kind: 'file';
 } | {
-    kind: "folder";
+    kind: 'folder';
 } | {
-    kind: "other";
+    kind: 'other';
 };
 /**
  * @since 2.0.0
@@ -831,5 +831,5 @@ declare function watch(paths: string | string[] | URL | URL[], cb: (event: Watch
  * @since 2.0.0
  */
 declare function watchImmediate(paths: string | string[] | URL | URL[], cb: (event: WatchEvent) => void, options?: WatchOptions): Promise<UnwatchFn>;
-export type { CreateOptions, OpenOptions, CopyFileOptions, MkdirOptions, DirEntry, ReadDirOptions, ReadFileOptions, RemoveOptions, RenameOptions, StatOptions, TruncateOptions, WriteFileOptions, ExistsOptions, FileInfo, WatchOptions, DebouncedWatchOptions, WatchEvent, WatchEventKind, WatchEventKindAccess, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove, UnwatchFn, };
-export { BaseDirectory, FileHandle, create, open, copyFile, mkdir, readDir, readFile, readTextFile, readTextFileLines, remove, rename, SeekMode, stat, lstat, truncate, writeFile, writeTextFile, exists, watch, watchImmediate, };
+export type { CreateOptions, OpenOptions, CopyFileOptions, MkdirOptions, DirEntry, ReadDirOptions, ReadFileOptions, RemoveOptions, RenameOptions, StatOptions, TruncateOptions, WriteFileOptions, ExistsOptions, FileInfo, WatchOptions, DebouncedWatchOptions, WatchEvent, WatchEventKind, WatchEventKindAccess, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove, UnwatchFn };
+export { BaseDirectory, FileHandle, create, open, copyFile, mkdir, readDir, readFile, readTextFile, readTextFileLines, remove, rename, SeekMode, stat, lstat, truncate, writeFile, writeTextFile, exists, watch, watchImmediate };
