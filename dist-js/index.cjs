@@ -598,7 +598,7 @@ async function writeFile(path, data, options) {
     }
     await core.invoke('plugin:fs|write_file', data, {
         headers: {
-            path: path instanceof URL ? path.toString() : path,
+            path: encodeURIComponent(path instanceof URL ? path.toString() : path),
             options: JSON.stringify(options)
         }
     });
