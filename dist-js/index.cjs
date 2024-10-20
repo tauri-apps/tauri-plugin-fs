@@ -92,6 +92,19 @@ function parseFileInfo(r) {
         blocks: r.blocks
     };
 }
+// https://gist.github.com/zapthedingbat/38ebfbedd98396624e5b5f2ff462611d
+/** Converts a big-endian eight byte array to number  */
+function fromBytes(buffer) {
+    const bytes = new Uint8ClampedArray(buffer);
+    const size = bytes.byteLength;
+    let x = 0;
+    for (let i = 0; i < size; i++) {
+        const byte = bytes[i];
+        x *= 0x100;
+        x += byte;
+    }
+    return x;
+}
 /**
  *  The Tauri abstraction for reading and writing files.
  *
@@ -133,11 +146,18 @@ class FileHandle extends core.Resource {
         if (buffer.byteLength === 0) {
             return 0;
         }
-        const [data, nread] = await core.invoke('plugin:fs|read', {
+        const data = await core.invoke('plugin:fs|read', {
             rid: this.rid,
             len: buffer.byteLength
         });
-        buffer.set(data);
+        // Rust side will never return an empty array for this command and
+        // ensure there is at least 8 elements there.
+        //
+        // This is an optimization to include the number of read bytes (as bigendian bytes)
+        // at the end of returned array to avoid serialization overhead of separate values.
+        const nread = fromBytes(data.slice(-8));
+        const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+        buffer.set(bytes.slice(0, bytes.length - 8));
         return nread === 0 ? null : nread;
     }
     /**
@@ -618,10 +638,12 @@ async function writeTextFile(path, data, options) {
     if (path instanceof URL && path.protocol !== 'file:') {
         throw new TypeError('Must be a file URL.');
     }
-    await core.invoke('plugin:fs|write_text_file', {
-        path: path instanceof URL ? path.toString() : path,
-        data,
-        options
+    const encoder = new TextEncoder();
+    await core.invoke('plugin:fs|write_text_file', encoder.encode(data), {
+        headers: {
+            path: path instanceof URL ? path.toString() : path,
+            options: JSON.stringify(options)
+        }
     });
 }
 /**
