@@ -347,8 +347,8 @@ async function open(path, options) {
  * @since 2.0.0
  */
 async function copyFile(fromPath, toPath, options) {
-    if ((fromPath instanceof URL && fromPath.protocol !== 'file:') ||
-        (toPath instanceof URL && toPath.protocol !== 'file:')) {
+    if ((fromPath instanceof URL && fromPath.protocol !== 'file:')
+        || (toPath instanceof URL && toPath.protocol !== 'file:')) {
         throw new TypeError('Must be a file URL.');
     }
     await invoke('plugin:fs|copy_file', {
@@ -540,8 +540,8 @@ async function remove(path, options) {
  * @since 2.0.0
  */
 async function rename(oldPath, newPath, options) {
-    if ((oldPath instanceof URL && oldPath.protocol !== 'file:') ||
-        (newPath instanceof URL && newPath.protocol !== 'file:')) {
+    if ((oldPath instanceof URL && oldPath.protocol !== 'file:')
+        || (newPath instanceof URL && newPath.protocol !== 'file:')) {
         throw new TypeError('Must be a file URL.');
     }
     await invoke('plugin:fs|rename', {
