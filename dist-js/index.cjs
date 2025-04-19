@@ -708,64 +708,50 @@ async function exists(path, options) {
         options
     });
 }
-async function unwatch(rid) {
-    await core.invoke('plugin:fs|unwatch', { rid });
+class Watcher extends core.Resource {
 }
+async function watchInternal(paths, cb, options) {
+    const watchPaths = Array.isArray(paths) ? paths : [paths];
+    for (const path of watchPaths) {
+        if (path instanceof URL && path.protocol !== 'file:') {
+            throw new TypeError('Must be a file URL.');
+        }
+    }
+    const onEvent = new core.Channel();
+    onEvent.onmessage = cb;
+    const rid = await core.invoke('plugin:fs|watch', {
+        paths: watchPaths.map((p) => (p instanceof URL ? p.toString() : p)),
+        options,
+        onEvent
+    });
+    const watcher = new Watcher(rid);
+    return () => {
+        void watcher.close();
+    };
+}
+// TODO: Return `Watcher` instead in v3
 /**
  * Watch changes (after a delay) on files or directories.
  *
  * @since 2.0.0
  */
 async function watch(paths, cb, options) {
-    const opts = {
-        recursive: false,
+    return await watchInternal(paths, cb, {
         delayMs: 2000,
         ...options
-    };
-    const watchPaths = Array.isArray(paths) ? paths : [paths];
-    for (const path of watchPaths) {
-        if (path instanceof URL && path.protocol !== 'file:') {
-            throw new TypeError('Must be a file URL.');
-        }
-    }
-    const onEvent = new core.Channel();
-    onEvent.onmessage = cb;
-    const rid = await core.invoke('plugin:fs|watch', {
-        paths: watchPaths.map((p) => (p instanceof URL ? p.toString() : p)),
-        options: opts,
-        onEvent
     });
-    return () => {
-        void unwatch(rid);
-    };
 }
+// TODO: Return `Watcher` instead in v3
 /**
  * Watch changes on files or directories.
  *
  * @since 2.0.0
  */
 async function watchImmediate(paths, cb, options) {
-    const opts = {
-        recursive: false,
+    return await watchInternal(paths, cb, {
         ...options,
-        delayMs: null
-    };
-    const watchPaths = Array.isArray(paths) ? paths : [paths];
-    for (const path of watchPaths) {
-        if (path instanceof URL && path.protocol !== 'file:') {
-            throw new TypeError('Must be a file URL.');
-        }
-    }
-    const onEvent = new core.Channel();
-    onEvent.onmessage = cb;
-    const rid = await core.invoke('plugin:fs|watch', {
-        paths: watchPaths.map((p) => (p instanceof URL ? p.toString() : p)),
-        options: opts,
-        onEvent
+        delayMs: undefined
     });
-    return () => {
-        void unwatch(rid);
-    };
 }
 /**
  * Get the size of a file or directory. For files, the `stat` functions can be used as well.
