@@ -641,7 +641,12 @@ async function writeFile(path, data, options) {
         throw new TypeError('Must be a file URL.');
     }
     if (data instanceof ReadableStream) {
-        const file = await open(path, { create: true, ...options });
+        const file = await open(path, {
+            read: false,
+            create: true,
+            write: true,
+            ...options
+        });
         const reader = data.getReader();
         try {
             while (true) {
