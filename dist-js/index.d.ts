@@ -536,7 +536,7 @@ interface ReadFileOptions {
  *
  * @since 2.0.0
  */
-declare function readFile(path: string | URL, options?: ReadFileOptions): Promise<Uint8Array>;
+declare function readFile(path: string | URL, options?: ReadFileOptions): Promise<Uint8Array<ArrayBuffer>>;
 /**
  * Reads and returns the entire contents of a file as UTF-8 string.
  * @example
