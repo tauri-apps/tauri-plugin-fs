@@ -524,6 +524,8 @@ declare function readDir(path: string | URL, options?: ReadDirOptions): Promise<
 interface ReadFileOptions {
     /** Base directory for `path` */
     baseDir?: BaseDirectory;
+    /** Text encoding to use when reading a text file. Defaults to 'utf-8'. */
+    encoding?: string;
 }
 /**
  * Reads and resolves to the entire contents of a file as an array of bytes.
@@ -538,7 +540,7 @@ interface ReadFileOptions {
  */
 declare function readFile(path: string | URL, options?: ReadFileOptions): Promise<Uint8Array<ArrayBuffer>>;
 /**
- * Reads and returns the entire contents of a file as UTF-8 string.
+ * Reads and returns the entire contents of a file as a string using the specified encoding (default: UTF-8).
  * @example
  * ```typescript
  * import { readTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
@@ -549,7 +551,7 @@ declare function readFile(path: string | URL, options?: ReadFileOptions): Promis
  */
 declare function readTextFile(path: string | URL, options?: ReadFileOptions): Promise<string>;
 /**
- * Returns an async {@linkcode AsyncIterableIterator} over the lines of a file as UTF-8 string.
+ * Returns an async {@linkcode AsyncIterableIterator} over the lines of a file, decoded using the specified encoding (default: UTF-8).
  * @example
  * ```typescript
  * import { readTextFileLines, BaseDirectory } from '@tauri-apps/plugin-fs';
