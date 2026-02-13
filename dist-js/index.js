@@ -473,10 +473,13 @@ async function readTextFileLines(path, options) {
         path: pathStr,
         rid: null,
         async next() {
+            const decoder = new TextDecoder(options?.encoding ?? 'utf-8');
             if (this.rid === null) {
+                // Use the normalized encoding label for options.
+                const encoding = decoder.encoding;
                 this.rid = await invoke('plugin:fs|read_text_file_lines', {
                     path: pathStr,
-                    options
+                    options: options != null ? { ...options, encoding } : undefined
                 });
             }
             const arr = await invoke('plugin:fs|read_text_file_lines_next', { rid: this.rid });
@@ -492,7 +495,7 @@ async function readTextFileLines(path, options) {
                 this.rid = null;
                 return { value: null, done };
             }
-            const line = new TextDecoder(options?.encoding ?? 'utf-8').decode(bytes.slice(0, bytes.byteLength - 1));
+            const line = decoder.decode(bytes.slice(0, bytes.byteLength - 1));
             return {
                 value: line,
                 done
