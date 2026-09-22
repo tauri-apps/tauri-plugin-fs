@@ -82,9 +82,15 @@
  */
 import { BaseDirectory } from '@tauri-apps/api/path';
 import { Resource } from '@tauri-apps/api/core';
+/**
+ * Defines how the offset given to {@linkcode FileHandle.seek} is interpreted.
+ */
 declare enum SeekMode {
+    /** The offset is relative to the start of the file. */
     Start = 0,
+    /** The offset is relative to the current cursor position. */
     Current = 1,
+    /** The offset is relative to the end of the file. */
     End = 2
 }
 /**
@@ -251,6 +257,8 @@ declare class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @param buffer The buffer the file contents are read into.
+     * @returns A promise resolving to the number of bytes read, or `null` when the end of the file was reached.
      * @since 2.0.0
      */
     read(buffer: Uint8Array): Promise<number | null>;
@@ -284,6 +292,9 @@ declare class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @param offset The number of bytes the cursor is moved by.
+     * @param whence Defines the position the `offset` is relative to.
+     * @returns A promise resolving to the new cursor position, relative to the start of the file.
      * @since 2.0.0
      */
     seek(offset: number, whence: SeekMode): Promise<number>;
@@ -299,6 +310,7 @@ declare class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @returns A promise resolving to the metadata of this file.
      * @since 2.0.0
      */
     stat(): Promise<FileInfo>;
@@ -324,6 +336,7 @@ declare class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @param len The length the file is truncated or extended to, in bytes. When not provided the entire file contents are truncated.
      * @since 2.0.0
      */
     truncate(len?: number): Promise<void>;
@@ -345,11 +358,15 @@ declare class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @param data The bytes written to the file.
+     * @returns A promise resolving to the number of bytes written.
      * @since 2.0.0
      */
     write(data: Uint8Array): Promise<number>;
 }
 /**
+ * Options for the `create` function, which creates or truncates a file.
+ *
  * @since 2.0.0
  */
 interface CreateOptions {
@@ -368,10 +385,15 @@ interface CreateOptions {
  * await file.close();
  * ```
  *
+ * @param path The path of the file, relative to `options.baseDir` when it is provided.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the handle of the created file.
  * @since 2.0.0
  */
 declare function create(path: string | URL, options?: CreateOptions): Promise<FileHandle>;
 /**
+ * Options for the `open` function, defining how the file is opened and which operations are allowed on it.
+ *
  * @since 2.0.0
  */
 interface OpenOptions {
@@ -437,10 +459,15 @@ interface OpenOptions {
  * await file.close();
  * ```
  *
+ * @param path The path of the file, relative to `options.baseDir` when it is provided.
+ * @param options Options defining the base directory of `path` and how the file is opened.
+ * @returns A promise resolving to the handle of the open file.
  * @since 2.0.0
  */
 declare function open(path: string | URL, options?: OpenOptions): Promise<FileHandle>;
 /**
+ * Options for the `copyFile` function, defining the base directory of each path.
+ *
  * @since 2.0.0
  */
 interface CopyFileOptions {
@@ -457,10 +484,15 @@ interface CopyFileOptions {
  * await copyFile('app.conf', 'app.conf.bk', { fromPathBaseDir: BaseDirectory.AppConfig, toPathBaseDir: BaseDirectory.AppConfig });
  * ```
  *
+ * @param fromPath The path of the file to copy from.
+ * @param toPath The path of the file to copy to.
+ * @param options Options defining the base directory of each path.
  * @since 2.0.0
  */
 declare function copyFile(fromPath: string | URL, toPath: string | URL, options?: CopyFileOptions): Promise<void>;
 /**
+ * Options for the `mkdir` function, which creates a directory.
+ *
  * @since 2.0.0
  */
 interface MkdirOptions {
@@ -481,10 +513,14 @@ interface MkdirOptions {
  * await mkdir('users', { baseDir: BaseDirectory.AppLocalData });
  * ```
  *
+ * @param path The path of the directory to create.
+ * @param options Options defining the base directory of `path`, the directory permissions and whether intermediate directories are created.
  * @since 2.0.0
  */
 declare function mkdir(path: string | URL, options?: MkdirOptions): Promise<void>;
 /**
+ * Options for the `readDir` function, which lists the entries of a directory.
+ *
  * @since 2.0.0
  */
 interface ReadDirOptions {
@@ -514,24 +550,29 @@ interface DirEntry {
  * ```typescript
  * import { readDir, BaseDirectory } from '@tauri-apps/plugin-fs';
  * import { join } from '@tauri-apps/api/path';
- * const dir = "users"
- * const entries = await readDir('users', { baseDir: BaseDirectory.AppLocalData });
- * processEntriesRecursively(dir, entries);
+ * const dir = 'users';
+ * const entries = await readDir(dir, { baseDir: BaseDirectory.AppLocalData });
+ * await processEntriesRecursively(dir, entries);
  * async function processEntriesRecursively(parent, entries) {
  *   for (const entry of entries) {
  *     console.log(`Entry: ${entry.name}`);
  *     if (entry.isDirectory) {
- *        const dir = await join(parent, entry.name);
- *       processEntriesRecursively(dir, await readDir(dir, { baseDir: BaseDirectory.AppLocalData }))
+ *       const entryPath = await join(parent, entry.name);
+ *       await processEntriesRecursively(entryPath, await readDir(entryPath, { baseDir: BaseDirectory.AppLocalData }));
  *     }
  *   }
  * }
  * ```
  *
+ * @param path The path of the directory to read.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the list of entries in the directory.
  * @since 2.0.0
  */
 declare function readDir(path: string | URL, options?: ReadDirOptions): Promise<DirEntry[]>;
 /**
+ * Options for the functions that read a file, such as `readFile` and `readTextFile`.
+ *
  * @since 2.0.0
  */
 interface ReadFileOptions {
@@ -549,6 +590,9 @@ interface ReadFileOptions {
  * const contents = await readFile('avatar.png', { baseDir: BaseDirectory.Resource });
  * ```
  *
+ * @param path The path of the file to read.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the contents of the file as bytes.
  * @since 2.0.0
  */
 declare function readFile(path: string | URL, options?: ReadFileOptions): Promise<Uint8Array<ArrayBuffer>>;
@@ -560,6 +604,9 @@ declare function readFile(path: string | URL, options?: ReadFileOptions): Promis
  * const contents = await readTextFile('app.conf', { baseDir: BaseDirectory.AppConfig });
  * ```
  *
+ * @param path The path of the file to read.
+ * @param options Options defining the base directory of `path` and the text encoding.
+ * @returns A promise resolving to the contents of the file as a string.
  * @since 2.0.0
  */
 declare function readTextFile(path: string | URL, options?: ReadFileOptions): Promise<string>;
@@ -576,10 +623,15 @@ declare function readTextFile(path: string | URL, options?: ReadFileOptions): Pr
  * You could also call {@linkcode AsyncIterableIterator.next} to advance the
  * iterator so you can lazily read the next line whenever you want.
  *
+ * @param path The path of the file to read.
+ * @param options Options defining the base directory of `path` and the text encoding.
+ * @returns A promise resolving to an iterator over the lines of the file.
  * @since 2.0.0
  */
 declare function readTextFileLines(path: string | URL, options?: ReadFileOptions): Promise<AsyncIterableIterator<string>>;
 /**
+ * Options for the `remove` function, which deletes a file or a directory.
+ *
  * @since 2.0.0
  */
 interface RemoveOptions {
@@ -598,10 +650,14 @@ interface RemoveOptions {
  * await remove('users', { baseDir: BaseDirectory.AppLocalData });
  * ```
  *
+ * @param path The path of the file or directory to remove.
+ * @param options Options defining the base directory of `path` and whether directories are removed recursively.
  * @since 2.0.0
  */
 declare function remove(path: string | URL, options?: RemoveOptions): Promise<void>;
 /**
+ * Options for the `rename` function, defining the base directory of each path.
+ *
  * @since 2.0.0
  */
 interface RenameOptions {
@@ -623,10 +679,15 @@ interface RenameOptions {
  * await rename('avatar.png', 'deleted.png', { oldPathBaseDir: BaseDirectory.App, newPathBaseDir: BaseDirectory.AppLocalData });
  * ```
  *
+ * @param oldPath The path of the file or directory to rename.
+ * @param newPath The path the file or directory is renamed to.
+ * @param options Options defining the base directory of each path.
  * @since 2.0.0
  */
 declare function rename(oldPath: string | URL, newPath: string | URL, options?: RenameOptions): Promise<void>;
 /**
+ * Options for the `stat` and `lstat` functions, which read the metadata of a path.
+ *
  * @since 2.0.0
  */
 interface StatOptions {
@@ -644,6 +705,9 @@ interface StatOptions {
  * console.log(fileInfo.isFile); // true
  * ```
  *
+ * @param path The path of the file or directory to inspect.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the metadata of the file or directory.
  * @since 2.0.0
  */
 declare function stat(path: string | URL, options?: StatOptions): Promise<FileInfo>;
@@ -659,10 +723,15 @@ declare function stat(path: string | URL, options?: StatOptions): Promise<FileIn
  * console.log(fileInfo.isFile); // true
  * ```
  *
+ * @param path The path of the file, directory or symlink to inspect.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the metadata of the path itself.
  * @since 2.0.0
  */
 declare function lstat(path: string | URL, options?: StatOptions): Promise<FileInfo>;
 /**
+ * Options for the `truncate` function, which truncates or extends a file.
+ *
  * @since 2.0.0
  */
 interface TruncateOptions {
@@ -687,10 +756,15 @@ interface TruncateOptions {
  * console.log(data);  // "Hello W"
  * ```
  *
+ * @param path The path of the file to truncate or extend.
+ * @param len The length the file is resized to, in bytes. Defaults to `0`.
+ * @param options Options defining the base directory of `path`.
  * @since 2.0.0
  */
 declare function truncate(path: string | URL, len?: number, options?: TruncateOptions): Promise<void>;
 /**
+ * Options for the `writeFile` and `writeTextFile` functions, defining how the file is opened before writing to it.
+ *
  * @since 2.0.0
  */
 interface WriteFileOptions {
@@ -716,22 +790,31 @@ interface WriteFileOptions {
  * await writeFile('file.txt', data, { baseDir: BaseDirectory.AppLocalData });
  * ```
  *
+ * @param path The path of the file to write to.
+ * @param data The bytes written to the file, either as a buffer or as a stream of chunks.
+ * @param options Options defining the base directory of `path` and how the file is opened.
  * @since 2.0.0
  */
 declare function writeFile(path: string | URL, data: Uint8Array | ReadableStream<Uint8Array>, options?: WriteFileOptions): Promise<void>;
 /**
-  * Writes UTF-8 string `data` to the given `path`, by default creating a new file if needed, else overwriting.
-    @example
-  * ```typescript
-  * import { writeTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
-  *
-  * await writeTextFile('file.txt', "Hello world", { baseDir: BaseDirectory.AppLocalData });
-  * ```
-  *
-  * @since 2.0.0
-  */
+ * Writes UTF-8 string `data` to the given `path`, by default creating a new file if needed, else overwriting.
+ *
+ * @example
+ * ```typescript
+ * import { writeTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
+ *
+ * await writeTextFile('file.txt', "Hello world", { baseDir: BaseDirectory.AppLocalData });
+ * ```
+ *
+ * @param path The path of the file to write to.
+ * @param data The UTF-8 string written to the file.
+ * @param options Options defining the base directory of `path` and how the file is opened.
+ * @since 2.0.0
+ */
 declare function writeTextFile(path: string | URL, data: string, options?: WriteFileOptions): Promise<void>;
 /**
+ * Options for the `exists` function, which checks whether a path exists.
+ *
  * @since 2.0.0
  */
 interface ExistsOptions {
@@ -747,10 +830,15 @@ interface ExistsOptions {
  * await exists('avatar.png', { baseDir: BaseDirectory.AppData });
  * ```
  *
+ * @param path The path to check.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to `true` when the path exists, `false` otherwise.
  * @since 2.0.0
  */
 declare function exists(path: string | URL, options?: ExistsOptions): Promise<boolean>;
 /**
+ * Options for the `watchImmediate` function, which reports file system changes as they happen.
+ *
  * @since 2.0.0
  */
 interface WatchOptions {
@@ -760,21 +848,33 @@ interface WatchOptions {
     baseDir?: BaseDirectory;
 }
 /**
+ * Options for the `watch` function, which reports file system changes after a debounce delay.
+ *
  * @since 2.0.0
  */
 interface DebouncedWatchOptions extends WatchOptions {
-    /** Debounce delay */
+    /**
+     * The debounce delay in milliseconds. Changes that happen within this
+     * window are grouped and reported together. Defaults to `2000`.
+     */
     delayMs?: number;
 }
 /**
+ * A file system change reported to the callback of `watch` or `watchImmediate`.
+ *
  * @since 2.0.0
  */
 interface WatchEvent {
+    /** The kind of change that was detected. */
     type: WatchEventKind;
+    /** The paths affected by the change. */
     paths: string[];
+    /** Additional attributes reported by the underlying file system watcher. */
     attrs: unknown;
 }
 /**
+ * The kind of file system change described by a `WatchEvent`.
+ *
  * @since 2.0.0
  */
 type WatchEventKind = 'any' | {
@@ -787,6 +887,8 @@ type WatchEventKind = 'any' | {
     remove: WatchEventKindRemove;
 } | 'other';
 /**
+ * Describes how a file or directory was accessed.
+ *
  * @since 2.0.0
  */
 type WatchEventKindAccess = {
@@ -801,6 +903,8 @@ type WatchEventKindAccess = {
     kind: 'other';
 };
 /**
+ * Describes which kind of entry was created.
+ *
  * @since 2.0.0
  */
 type WatchEventKindCreate = {
@@ -813,6 +917,8 @@ type WatchEventKindCreate = {
     kind: 'other';
 };
 /**
+ * Describes what was modified on a file or directory.
+ *
  * @since 2.0.0
  */
 type WatchEventKindModify = {
@@ -830,6 +936,8 @@ type WatchEventKindModify = {
     kind: 'other';
 };
 /**
+ * Describes which kind of entry was removed.
+ *
  * @since 2.0.0
  */
 type WatchEventKindRemove = {
@@ -842,18 +950,62 @@ type WatchEventKindRemove = {
     kind: 'other';
 };
 /**
+ * Stops watching the paths it was created for. Returned by `watch` and `watchImmediate`.
+ *
  * @since 2.0.0
  */
 type UnwatchFn = () => void;
 /**
  * Watch changes (after a delay) on files or directories.
  *
+ * Events that happen within the `delayMs` window are grouped and delivered in a single callback call.
+ * Requires the `watch` Cargo feature of the Rust plugin to be enabled.
+ *
+ * @example
+ * ```typescript
+ * import { watch, BaseDirectory } from '@tauri-apps/plugin-fs';
+ *
+ * const unwatch = await watch(
+ *   'app.conf',
+ *   (event) => console.log(event.type, event.paths),
+ *   { baseDir: BaseDirectory.AppConfig, delayMs: 500 }
+ * );
+ *
+ * // stop watching when you are done
+ * unwatch();
+ * ```
+ *
+ * @param paths The path or list of paths to watch. Each path can be a string or a `file://` URL.
+ * @param cb The callback executed for each batch of file system changes.
+ * @param options Options defining the base directory of the paths, the debounce delay and whether directories are watched recursively.
+ * @returns A promise resolving to a function that stops watching the given paths.
  * @since 2.0.0
  */
 declare function watch(paths: string | string[] | URL | URL[], cb: (event: WatchEvent) => void, options?: DebouncedWatchOptions): Promise<UnwatchFn>;
 /**
  * Watch changes on files or directories.
  *
+ * Unlike `watch`, changes are reported as soon as they are detected, without a debounce delay.
+ * Requires the `watch` Cargo feature of the Rust plugin to be enabled.
+ *
+ * @example
+ * ```typescript
+ * import { watchImmediate, BaseDirectory } from '@tauri-apps/plugin-fs';
+ *
+ * const unwatch = await watchImmediate(
+ *   'logs',
+ *   (event) => console.log(event.type, event.paths),
+ *   { baseDir: BaseDirectory.AppLog, recursive: true }
+ * );
+ *
+ * // stop watching when you are done
+ * unwatch();
+ * ```
+ *
+ * @param paths The path or list of paths to watch. Each path can be a string or a `file://` URL.
+ * @param cb The callback executed for each file system change.
+ * @param options Options defining the base directory of the paths and whether directories are watched recursively.
+ * @returns A promise resolving to a function that stops watching the given paths.
  * @since 2.0.0
  */
 declare function watchImmediate(paths: string | string[] | URL | URL[], cb: (event: WatchEvent) => void, options?: WatchOptions): Promise<UnwatchFn>;
@@ -870,6 +1022,8 @@ declare function watchImmediate(paths: string | string[] | URL | URL[], cb: (eve
  * console.log(dirSize); // 1024
  * ```
  *
+ * @param path The path of the file or directory to measure.
+ * @returns A promise resolving to the size in bytes.
  * @since 2.1.0
  */
 declare function size(path: string | URL): Promise<number>;
@@ -897,6 +1051,7 @@ declare function size(path: string | URL): Promise<number>;
  * // ... use the resource ...
  * ```
  *
+ * @param path The path or `file://` URL of the resource to start accessing.
  * @since 2.5.0
  */
 declare function startAccessingSecurityScopedResource(path: string | URL): Promise<void>;
@@ -921,6 +1076,7 @@ declare function startAccessingSecurityScopedResource(path: string | URL): Promi
  * await stopAccessingSecurityScopedResource(filePath);
  * ```
  *
+ * @param path The path or `file://` URL of the resource to stop accessing.
  * @since 2.5.0
  */
 declare function stopAccessingSecurityScopedResource(path: string | URL): Promise<void>;
