@@ -454,14 +454,7 @@ async function readFile(path, options) {
  * @since 2.0.0
  */
 async function readTextFile(path, options) {
-    if (path instanceof URL && path.protocol !== 'file:') {
-        throw new TypeError('Must be a file URL.');
-    }
-    const arr = await core.invoke('plugin:fs|read_text_file', {
-        path: path instanceof URL ? path.toString() : path,
-        options
-    });
-    const bytes = arr instanceof ArrayBuffer ? arr : Uint8Array.from(arr);
+    const bytes = await readFile(path, options);
     return new TextDecoder(options?.encoding ?? 'utf-8').decode(bytes);
 }
 /**
@@ -698,16 +691,7 @@ async function writeFile(path, data, options) {
   * @since 2.0.0
   */
 async function writeTextFile(path, data, options) {
-    if (path instanceof URL && path.protocol !== 'file:') {
-        throw new TypeError('Must be a file URL.');
-    }
-    const encoder = new TextEncoder();
-    await core.invoke('plugin:fs|write_text_file', encoder.encode(data), {
-        headers: {
-            path: encodeURIComponent(path instanceof URL ? path.toString() : path),
-            options: JSON.stringify(options)
-        }
-    });
+    await writeFile(path, new TextEncoder().encode(data), options);
 }
 /**
  * Check if a path exists.
@@ -729,6 +713,11 @@ async function exists(path, options) {
         options
     });
 }
+/**
+ * A file system watcher. Call {@linkcode Watcher.close} to stop watching.
+ *
+ * @since 3.0.0
+ */
 class Watcher extends core.Resource {
 }
 async function watchInternal(paths, cb, options) {
@@ -745,14 +734,18 @@ async function watchInternal(paths, cb, options) {
         options,
         onEvent
     });
-    const watcher = new Watcher(rid);
-    return () => {
-        void watcher.close();
-    };
+    return new Watcher(rid);
 }
-// TODO: Return `Watcher` instead in v3
 /**
  * Watch changes (after a delay) on files or directories.
+ *
+ * @example
+ * ```typescript
+ * import { watch, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * const watcher = await watch('app.conf', (event) => console.log(event), { baseDir: BaseDirectory.AppConfig });
+ * // when you're done watching:
+ * await watcher.close();
+ * ```
  *
  * @since 2.0.0
  */
@@ -762,9 +755,16 @@ async function watch(paths, cb, options) {
         ...options
     });
 }
-// TODO: Return `Watcher` instead in v3
 /**
  * Watch changes on files or directories.
+ *
+ * @example
+ * ```typescript
+ * import { watchImmediate, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * const watcher = await watchImmediate('app.conf', (event) => console.log(event), { baseDir: BaseDirectory.AppConfig });
+ * // when you're done watching:
+ * await watcher.close();
+ * ```
  *
  * @since 2.0.0
  */
@@ -868,6 +868,7 @@ Object.defineProperty(exports, "BaseDirectory", {
   get: function () { return path.BaseDirectory; }
 });
 exports.FileHandle = FileHandle;
+exports.Watcher = Watcher;
 exports.copyFile = copyFile;
 exports.create = create;
 exports.exists = exists;

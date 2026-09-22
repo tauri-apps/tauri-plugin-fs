@@ -767,25 +767,61 @@ interface DebouncedWatchOptions extends WatchOptions {
     delayMs?: number;
 }
 /**
+ * Additional attributes of a {@linkcode WatchEvent}.
+ *
+ * @since 3.0.0
+ */
+interface WatchEventAttributes {
+    /** Tracker ID that groups related events, e.g. both sides of a rename. */
+    tracker?: number;
+    /**
+     * `rescan` means some events may have been missed, so any file or folder might have been modified.
+     */
+    flag?: 'rescan';
+    /** Short string identifying the details of an `other` event. */
+    info?: string;
+    /** Short string identifying the backend that generated the event. */
+    source?: string;
+}
+/**
+ * A file system event.
+ *
+ * The event kind is flattened into the event: `type` is the top-level kind and,
+ * for `access`, `create`, `modify` and `remove` events, `kind` (and `mode` when available)
+ * refines it.
+ *
+ * @example
+ * ```typescript
+ * import { watch } from '@tauri-apps/plugin-fs';
+ * await watch('/path/to/file', (event) => {
+ *   if (event.type === 'modify' && event.kind === 'data') {
+ *     console.log('data changed', event.paths, event.mode);
+ *   }
+ * });
+ * ```
+ *
  * @since 2.0.0
  */
-interface WatchEvent {
-    type: WatchEventKind;
+type WatchEvent = WatchEventKind & {
     paths: string[];
-    attrs: unknown;
-}
+    attrs: WatchEventAttributes;
+};
 /**
  * @since 2.0.0
  */
-type WatchEventKind = 'any' | {
-    access: WatchEventKindAccess;
-} | {
-    create: WatchEventKindCreate;
-} | {
-    modify: WatchEventKindModify;
-} | {
-    remove: WatchEventKindRemove;
-} | 'other';
+type WatchEventKind = {
+    type: 'any';
+} | ({
+    type: 'access';
+} & WatchEventKindAccess) | ({
+    type: 'create';
+} & WatchEventKindCreate) | ({
+    type: 'modify';
+} & WatchEventKindModify) | ({
+    type: 'remove';
+} & WatchEventKindRemove) | {
+    type: 'other';
+};
 /**
  * @since 2.0.0
  */
@@ -842,21 +878,40 @@ type WatchEventKindRemove = {
     kind: 'other';
 };
 /**
- * @since 2.0.0
+ * A file system watcher. Call {@linkcode Watcher.close} to stop watching.
+ *
+ * @since 3.0.0
  */
-type UnwatchFn = () => void;
+declare class Watcher extends Resource {
+}
 /**
  * Watch changes (after a delay) on files or directories.
  *
- * @since 2.0.0
- */
-declare function watch(paths: string | string[] | URL | URL[], cb: (event: WatchEvent) => void, options?: DebouncedWatchOptions): Promise<UnwatchFn>;
-/**
- * Watch changes on files or directories.
+ * @example
+ * ```typescript
+ * import { watch, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * const watcher = await watch('app.conf', (event) => console.log(event), { baseDir: BaseDirectory.AppConfig });
+ * // when you're done watching:
+ * await watcher.close();
+ * ```
  *
  * @since 2.0.0
  */
-declare function watchImmediate(paths: string | string[] | URL | URL[], cb: (event: WatchEvent) => void, options?: WatchOptions): Promise<UnwatchFn>;
+declare function watch(paths: string | string[] | URL | URL[], cb: (event: WatchEvent) => void, options?: DebouncedWatchOptions): Promise<Watcher>;
+/**
+ * Watch changes on files or directories.
+ *
+ * @example
+ * ```typescript
+ * import { watchImmediate, BaseDirectory } from '@tauri-apps/plugin-fs';
+ * const watcher = await watchImmediate('app.conf', (event) => console.log(event), { baseDir: BaseDirectory.AppConfig });
+ * // when you're done watching:
+ * await watcher.close();
+ * ```
+ *
+ * @since 2.0.0
+ */
+declare function watchImmediate(paths: string | string[] | URL | URL[], cb: (event: WatchEvent) => void, options?: WatchOptions): Promise<Watcher>;
 /**
  * Get the size of a file or directory. For files, the `stat` functions can be used as well.
  *
@@ -924,5 +979,5 @@ declare function startAccessingSecurityScopedResource(path: string | URL): Promi
  * @since 2.5.0
  */
 declare function stopAccessingSecurityScopedResource(path: string | URL): Promise<void>;
-export type { CreateOptions, OpenOptions, CopyFileOptions, MkdirOptions, DirEntry, ReadDirOptions, ReadFileOptions, RemoveOptions, RenameOptions, StatOptions, TruncateOptions, WriteFileOptions, ExistsOptions, FileInfo, WatchOptions, DebouncedWatchOptions, WatchEvent, WatchEventKind, WatchEventKindAccess, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove, UnwatchFn };
-export { BaseDirectory, FileHandle, create, open, copyFile, mkdir, readDir, readFile, readTextFile, readTextFileLines, remove, rename, SeekMode, stat, lstat, truncate, writeFile, writeTextFile, exists, watch, watchImmediate, size, startAccessingSecurityScopedResource, stopAccessingSecurityScopedResource };
+export type { CreateOptions, OpenOptions, CopyFileOptions, MkdirOptions, DirEntry, ReadDirOptions, ReadFileOptions, RemoveOptions, RenameOptions, StatOptions, TruncateOptions, WriteFileOptions, ExistsOptions, FileInfo, WatchOptions, DebouncedWatchOptions, WatchEvent, WatchEventAttributes, WatchEventKind, WatchEventKindAccess, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove };
+export { BaseDirectory, FileHandle, Watcher, create, open, copyFile, mkdir, readDir, readFile, readTextFile, readTextFileLines, remove, rename, SeekMode, stat, lstat, truncate, writeFile, writeTextFile, exists, watch, watchImmediate, size, startAccessingSecurityScopedResource, stopAccessingSecurityScopedResource };
