@@ -535,7 +535,15 @@ async function readTextFileLines(path, options) {
                     options: options != null ? { ...options, encoding } : undefined
                 });
             }
-            const arr = await core.invoke('plugin:fs|read_text_file_lines_next', { rid: this.rid });
+            let arr;
+            try {
+                arr = await core.invoke('plugin:fs|read_text_file_lines_next', { rid: this.rid });
+            }
+            catch (error) {
+                // the resource is closed on errors, the next iteration starts over
+                this.rid = null;
+                throw error;
+            }
             const bytes = arr instanceof ArrayBuffer ? new Uint8Array(arr) : Uint8Array.from(arr);
             // Rust side will never return an empty array for this command and
             // ensure there is at least one elements there.
@@ -553,6 +561,16 @@ async function readTextFileLines(path, options) {
                 value: line,
                 done
             };
+        },
+        // called when a `for await` loop exits early (`break`, `return` or `throw`)
+        async return() {
+            if (this.rid !== null) {
+                const rid = this.rid;
+                this.rid = null;
+                // close the file, otherwise it stays open until the webview is destroyed
+                await new core.Resource(rid).close();
+            }
+            return { value: null, done: true };
         },
         [Symbol.asyncIterator]() {
             return this;
@@ -892,15 +910,17 @@ async function watchImmediate(paths, cb, options) {
  * ```
  *
  * @param path The path of the file or directory to measure.
+ * @param options Options defining the base directory of `path` (since 2.6.0).
  * @returns A promise resolving to the size in bytes.
  * @since 2.1.0
  */
-async function size(path) {
+async function size(path, options) {
     if (path instanceof URL && path.protocol !== 'file:') {
         throw new TypeError('Must be a file URL.');
     }
     return await core.invoke('plugin:fs|size', {
-        path: path instanceof URL ? path.toString() : path
+        path: path instanceof URL ? path.toString() : path,
+        options
     });
 }
 /**

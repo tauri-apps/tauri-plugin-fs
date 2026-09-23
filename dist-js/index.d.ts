@@ -1010,6 +1010,15 @@ declare function watch(paths: string | string[] | URL | URL[], cb: (event: Watch
  */
 declare function watchImmediate(paths: string | string[] | URL | URL[], cb: (event: WatchEvent) => void, options?: WatchOptions): Promise<UnwatchFn>;
 /**
+ * Options for the `size` function.
+ *
+ * @since 2.6.0
+ */
+interface SizeOptions {
+    /** Base directory for `path`. */
+    baseDir?: BaseDirectory;
+}
+/**
  * Get the size of a file or directory. For files, the `stat` functions can be used as well.
  *
  * If `path` is a directory, this function will recursively iterate over every file and every directory inside of `path` and therefore will be very time consuming if used on larger directories.
@@ -1023,10 +1032,11 @@ declare function watchImmediate(paths: string | string[] | URL | URL[], cb: (eve
  * ```
  *
  * @param path The path of the file or directory to measure.
+ * @param options Options defining the base directory of `path` (since 2.6.0).
  * @returns A promise resolving to the size in bytes.
  * @since 2.1.0
  */
-declare function size(path: string | URL): Promise<number>;
+declare function size(path: string | URL, options?: SizeOptions): Promise<number>;
 /**
  * Starts accessing a security-scoped resource for the given file URL.
  * This should be called when you're accessing a file that was opened
@@ -1080,5 +1090,5 @@ declare function startAccessingSecurityScopedResource(path: string | URL): Promi
  * @since 2.5.0
  */
 declare function stopAccessingSecurityScopedResource(path: string | URL): Promise<void>;
-export type { CreateOptions, OpenOptions, CopyFileOptions, MkdirOptions, DirEntry, ReadDirOptions, ReadFileOptions, RemoveOptions, RenameOptions, StatOptions, TruncateOptions, WriteFileOptions, ExistsOptions, FileInfo, WatchOptions, DebouncedWatchOptions, WatchEvent, WatchEventKind, WatchEventKindAccess, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove, UnwatchFn };
+export type { CreateOptions, OpenOptions, CopyFileOptions, MkdirOptions, DirEntry, ReadDirOptions, ReadFileOptions, RemoveOptions, RenameOptions, StatOptions, TruncateOptions, WriteFileOptions, ExistsOptions, SizeOptions, FileInfo, WatchOptions, DebouncedWatchOptions, WatchEvent, WatchEventKind, WatchEventKindAccess, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove, UnwatchFn };
 export { BaseDirectory, FileHandle, create, open, copyFile, mkdir, readDir, readFile, readTextFile, readTextFileLines, remove, rename, SeekMode, stat, lstat, truncate, writeFile, writeTextFile, exists, watch, watchImmediate, size, startAccessingSecurityScopedResource, stopAccessingSecurityScopedResource };
