@@ -86,10 +86,16 @@ import { Resource, invoke, Channel } from '@tauri-apps/api/core';
  *
  * @module
  */
+/**
+ * Defines how the offset given to {@linkcode FileHandle.seek} is interpreted.
+ */
 var SeekMode;
 (function (SeekMode) {
+    /** The offset is relative to the start of the file. */
     SeekMode[SeekMode["Start"] = 0] = "Start";
+    /** The offset is relative to the current cursor position. */
     SeekMode[SeekMode["Current"] = 1] = "Current";
+    /** The offset is relative to the end of the file. */
     SeekMode[SeekMode["End"] = 2] = "End";
 })(SeekMode || (SeekMode = {}));
 function parseFileInfo(r) {
@@ -163,6 +169,8 @@ class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @param buffer The buffer the file contents are read into.
+     * @returns A promise resolving to the number of bytes read, or `null` when the end of the file was reached.
      * @since 2.0.0
      */
     async read(buffer) {
@@ -213,6 +221,9 @@ class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @param offset The number of bytes the cursor is moved by.
+     * @param whence Defines the position the `offset` is relative to.
+     * @returns A promise resolving to the new cursor position, relative to the start of the file.
      * @since 2.0.0
      */
     async seek(offset, whence) {
@@ -234,6 +245,7 @@ class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @returns A promise resolving to the metadata of this file.
      * @since 2.0.0
      */
     async stat() {
@@ -264,6 +276,7 @@ class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @param len The length the file is truncated or extended to, in bytes. When not provided the entire file contents are truncated.
      * @since 2.0.0
      */
     async truncate(len) {
@@ -290,6 +303,8 @@ class FileHandle extends Resource {
      * await file.close();
      * ```
      *
+     * @param data The bytes written to the file.
+     * @returns A promise resolving to the number of bytes written.
      * @since 2.0.0
      */
     async write(data) {
@@ -311,6 +326,9 @@ class FileHandle extends Resource {
  * await file.close();
  * ```
  *
+ * @param path The path of the file, relative to `options.baseDir` when it is provided.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the handle of the created file.
  * @since 2.0.0
  */
 async function create(path, options) {
@@ -337,6 +355,9 @@ async function create(path, options) {
  * await file.close();
  * ```
  *
+ * @param path The path of the file, relative to `options.baseDir` when it is provided.
+ * @param options Options defining the base directory of `path` and how the file is opened.
+ * @returns A promise resolving to the handle of the open file.
  * @since 2.0.0
  */
 async function open(path, options) {
@@ -357,6 +378,9 @@ async function open(path, options) {
  * await copyFile('app.conf', 'app.conf.bk', { fromPathBaseDir: BaseDirectory.AppConfig, toPathBaseDir: BaseDirectory.AppConfig });
  * ```
  *
+ * @param fromPath The path of the file to copy from.
+ * @param toPath The path of the file to copy to.
+ * @param options Options defining the base directory of each path.
  * @since 2.0.0
  */
 async function copyFile(fromPath, toPath, options) {
@@ -378,6 +402,8 @@ async function copyFile(fromPath, toPath, options) {
  * await mkdir('users', { baseDir: BaseDirectory.AppLocalData });
  * ```
  *
+ * @param path The path of the directory to create.
+ * @param options Options defining the base directory of `path`, the directory permissions and whether intermediate directories are created.
  * @since 2.0.0
  */
 async function mkdir(path, options) {
@@ -395,20 +421,23 @@ async function mkdir(path, options) {
  * ```typescript
  * import { readDir, BaseDirectory } from '@tauri-apps/plugin-fs';
  * import { join } from '@tauri-apps/api/path';
- * const dir = "users"
- * const entries = await readDir('users', { baseDir: BaseDirectory.AppLocalData });
- * processEntriesRecursively(dir, entries);
+ * const dir = 'users';
+ * const entries = await readDir(dir, { baseDir: BaseDirectory.AppLocalData });
+ * await processEntriesRecursively(dir, entries);
  * async function processEntriesRecursively(parent, entries) {
  *   for (const entry of entries) {
  *     console.log(`Entry: ${entry.name}`);
  *     if (entry.isDirectory) {
- *        const dir = await join(parent, entry.name);
- *       processEntriesRecursively(dir, await readDir(dir, { baseDir: BaseDirectory.AppLocalData }))
+ *       const entryPath = await join(parent, entry.name);
+ *       await processEntriesRecursively(entryPath, await readDir(entryPath, { baseDir: BaseDirectory.AppLocalData }));
  *     }
  *   }
  * }
  * ```
  *
+ * @param path The path of the directory to read.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the list of entries in the directory.
  * @since 2.0.0
  */
 async function readDir(path, options) {
@@ -429,6 +458,9 @@ async function readDir(path, options) {
  * const contents = await readFile('avatar.png', { baseDir: BaseDirectory.Resource });
  * ```
  *
+ * @param path The path of the file to read.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the contents of the file as bytes.
  * @since 2.0.0
  */
 async function readFile(path, options) {
@@ -449,6 +481,9 @@ async function readFile(path, options) {
  * const contents = await readTextFile('app.conf', { baseDir: BaseDirectory.AppConfig });
  * ```
  *
+ * @param path The path of the file to read.
+ * @param options Options defining the base directory of `path` and the text encoding.
+ * @returns A promise resolving to the contents of the file as a string.
  * @since 2.0.0
  */
 async function readTextFile(path, options) {
@@ -468,6 +503,9 @@ async function readTextFile(path, options) {
  * You could also call {@linkcode AsyncIterableIterator.next} to advance the
  * iterator so you can lazily read the next line whenever you want.
  *
+ * @param path The path of the file to read.
+ * @param options Options defining the base directory of `path` and the text encoding.
+ * @returns A promise resolving to an iterator over the lines of the file.
  * @since 2.0.0
  */
 async function readTextFileLines(path, options) {
@@ -488,7 +526,15 @@ async function readTextFileLines(path, options) {
                     options: options != null ? { ...options, encoding } : undefined
                 });
             }
-            const arr = await invoke('plugin:fs|read_text_file_lines_next', { rid: this.rid });
+            let arr;
+            try {
+                arr = await invoke('plugin:fs|read_text_file_lines_next', { rid: this.rid });
+            }
+            catch (error) {
+                // the resource is closed on errors, the next iteration starts over
+                this.rid = null;
+                throw error;
+            }
             const bytes = arr instanceof ArrayBuffer ? new Uint8Array(arr) : Uint8Array.from(arr);
             // Rust side will never return an empty array for this command and
             // ensure there is at least one elements there.
@@ -507,6 +553,16 @@ async function readTextFileLines(path, options) {
                 done
             };
         },
+        // called when a `for await` loop exits early (`break`, `return` or `throw`)
+        async return() {
+            if (this.rid !== null) {
+                const rid = this.rid;
+                this.rid = null;
+                // close the file, otherwise it stays open until the webview is destroyed
+                await new Resource(rid).close();
+            }
+            return { value: null, done: true };
+        },
         [Symbol.asyncIterator]() {
             return this;
         }
@@ -522,6 +578,8 @@ async function readTextFileLines(path, options) {
  * await remove('users', { baseDir: BaseDirectory.AppLocalData });
  * ```
  *
+ * @param path The path of the file or directory to remove.
+ * @param options Options defining the base directory of `path` and whether directories are removed recursively.
  * @since 2.0.0
  */
 async function remove(path, options) {
@@ -546,6 +604,9 @@ async function remove(path, options) {
  * await rename('avatar.png', 'deleted.png', { oldPathBaseDir: BaseDirectory.App, newPathBaseDir: BaseDirectory.AppLocalData });
  * ```
  *
+ * @param oldPath The path of the file or directory to rename.
+ * @param newPath The path the file or directory is renamed to.
+ * @param options Options defining the base directory of each path.
  * @since 2.0.0
  */
 async function rename(oldPath, newPath, options) {
@@ -570,6 +631,9 @@ async function rename(oldPath, newPath, options) {
  * console.log(fileInfo.isFile); // true
  * ```
  *
+ * @param path The path of the file or directory to inspect.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the metadata of the file or directory.
  * @since 2.0.0
  */
 async function stat(path, options) {
@@ -591,6 +655,9 @@ async function stat(path, options) {
  * console.log(fileInfo.isFile); // true
  * ```
  *
+ * @param path The path of the file, directory or symlink to inspect.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to the metadata of the path itself.
  * @since 2.0.0
  */
 async function lstat(path, options) {
@@ -618,6 +685,9 @@ async function lstat(path, options) {
  * console.log(data);  // "Hello W"
  * ```
  *
+ * @param path The path of the file to truncate or extend.
+ * @param len The length the file is resized to, in bytes. Defaults to `0`.
+ * @param options Options defining the base directory of `path`.
  * @since 2.0.0
  */
 async function truncate(path, len, options) {
@@ -641,6 +711,9 @@ async function truncate(path, len, options) {
  * await writeFile('file.txt', data, { baseDir: BaseDirectory.AppLocalData });
  * ```
  *
+ * @param path The path of the file to write to.
+ * @param data The bytes written to the file, either as a buffer or as a stream of chunks.
+ * @param options Options defining the base directory of `path` and how the file is opened.
  * @since 2.0.0
  */
 async function writeFile(path, data, options) {
@@ -678,16 +751,20 @@ async function writeFile(path, data, options) {
     }
 }
 /**
-  * Writes UTF-8 string `data` to the given `path`, by default creating a new file if needed, else overwriting.
-    @example
-  * ```typescript
-  * import { writeTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
-  *
-  * await writeTextFile('file.txt', "Hello world", { baseDir: BaseDirectory.AppLocalData });
-  * ```
-  *
-  * @since 2.0.0
-  */
+ * Writes UTF-8 string `data` to the given `path`, by default creating a new file if needed, else overwriting.
+ *
+ * @example
+ * ```typescript
+ * import { writeTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
+ *
+ * await writeTextFile('file.txt', "Hello world", { baseDir: BaseDirectory.AppLocalData });
+ * ```
+ *
+ * @param path The path of the file to write to.
+ * @param data The UTF-8 string written to the file.
+ * @param options Options defining the base directory of `path` and how the file is opened.
+ * @since 2.0.0
+ */
 async function writeTextFile(path, data, options) {
     await writeFile(path, new TextEncoder().encode(data), options);
 }
@@ -700,6 +777,9 @@ async function writeTextFile(path, data, options) {
  * await exists('avatar.png', { baseDir: BaseDirectory.AppData });
  * ```
  *
+ * @param path The path to check.
+ * @param options Options defining the base directory of `path`.
+ * @returns A promise resolving to `true` when the path exists, `false` otherwise.
  * @since 2.0.0
  */
 async function exists(path, options) {
@@ -785,14 +865,18 @@ async function watchImmediate(paths, cb, options) {
  * console.log(dirSize); // 1024
  * ```
  *
+ * @param path The path of the file or directory to measure.
+ * @param options Options defining the base directory of `path` (since 2.6.0).
+ * @returns A promise resolving to the size in bytes.
  * @since 2.1.0
  */
-async function size(path) {
+async function size(path, options) {
     if (path instanceof URL && path.protocol !== 'file:') {
         throw new TypeError('Must be a file URL.');
     }
     return await invoke('plugin:fs|size', {
-        path: path instanceof URL ? path.toString() : path
+        path: path instanceof URL ? path.toString() : path,
+        options
     });
 }
 /**
@@ -819,6 +903,7 @@ async function size(path) {
  * // ... use the resource ...
  * ```
  *
+ * @param path The path or `file://` URL of the resource to start accessing.
  * @since 2.5.0
  */
 async function startAccessingSecurityScopedResource(path) {
@@ -850,6 +935,7 @@ async function startAccessingSecurityScopedResource(path) {
  * await stopAccessingSecurityScopedResource(filePath);
  * ```
  *
+ * @param path The path or `file://` URL of the resource to stop accessing.
  * @since 2.5.0
  */
 async function stopAccessingSecurityScopedResource(path) {
