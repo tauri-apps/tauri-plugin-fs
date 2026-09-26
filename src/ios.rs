@@ -47,7 +47,7 @@ impl<R: Runtime> Fs<R> {
 
                 // Create NSURL from the URL string
                 // URLWithString may return None for invalid URLs, but file:// URLs should be valid
-                let ns_url = unsafe { NSURL::URLWithString(&url_nsstring) };
+                let ns_url = NSURL::URLWithString(&url_nsstring);
                 if let Some(ns_url) = ns_url {
                     // Start accessing the security-scoped resource
                     // This is required for files outside the app's sandbox (e.g., from file picker)
@@ -127,7 +127,7 @@ impl<R: Runtime> Fs<R> {
         };
 
         let url_nsstring = NSString::from_str(&url_string);
-        let ns_url = unsafe { NSURL::URLWithString(&url_nsstring) };
+        let ns_url = NSURL::URLWithString(&url_nsstring);
         if let Some(ns_url) = ns_url {
             // Stop accessing the security-scoped resource
             unsafe {

@@ -191,9 +191,10 @@ impl FromStr for FilePath {
     type Err = Infallible;
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         if let Ok(url) = url::Url::from_str(s)
-            && url.scheme().len() != 1 {
-                return Ok(Self::Url(url));
-            }
+            && url.scheme().len() != 1
+        {
+            return Ok(Self::Url(url));
+        }
         Ok(Self::Path(PathBuf::from(s)))
     }
 }
@@ -202,9 +203,10 @@ impl FromStr for SafeFilePath {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         if let Ok(url) = url::Url::from_str(s)
-            && url.scheme().len() != 1 {
-                return Ok(Self::Url(url));
-            }
+            && url.scheme().len() != 1
+        {
+            return Ok(Self::Url(url));
+        }
 
         SafePathBuf::new(s.into())
             .map(SafeFilePath::Path)
