@@ -6,10 +6,10 @@
 use serde::{Deserialize, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use tauri::{
+    Manager, Resource, ResourceId, Runtime, Webview,
     ipc::{CommandScope, GlobalScope},
     path::BaseDirectory,
     utils::config::FsScope,
-    Manager, Resource, ResourceId, Runtime, Webview,
 };
 
 use std::{
@@ -23,7 +23,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::{scope::Entry, Error, SafeFilePath};
+use crate::{Error, SafeFilePath, scope::Entry};
 
 #[derive(Debug, thiserror::Error)]
 pub enum CommandError {
@@ -175,7 +175,9 @@ impl<R: Runtime> Drop for FileHandle<R> {
                             .stop_accessing_security_scoped_resource(FilePath::Url(url.clone()));
                         security_scoped_resources.remove(url.as_str());
                     } else {
-                        log::debug!("Not cleaning up security-scoped resource for URL: {url} on drop (manually tracked via start_accessing_security_scoped_resource)");
+                        log::debug!(
+                            "Not cleaning up security-scoped resource for URL: {url} on drop (manually tracked via start_accessing_security_scoped_resource)"
+                        );
                     }
                 }
             }
@@ -251,7 +253,9 @@ impl<R: Runtime> Drop for PathHandle<R> {
                         .stop_accessing_security_scoped_resource(FilePath::Url(url.clone()));
                     security_scoped_resources.remove(url.as_str());
                 } else {
-                    log::debug!("Not cleaning up security-scoped resource for URL: {url} on drop (manually tracked via start_accessing_security_scoped_resource)");
+                    log::debug!(
+                        "Not cleaning up security-scoped resource for URL: {url} on drop (manually tracked via start_accessing_security_scoped_resource)"
+                    );
                 }
             }
         }
@@ -1530,7 +1534,10 @@ pub fn resolve_path<R: Runtime>(
                     unsafe {
                         let success = ns_url.startAccessingSecurityScopedResource();
                         if success {
-                            log::debug!("Started accessing security-scoped resource for URL: {} (via resolve_path)", url.as_str());
+                            log::debug!(
+                                "Started accessing security-scoped resource for URL: {} (via resolve_path)",
+                                url.as_str()
+                            );
                             // Track it so we know to clean it up
                             security_scoped_resources.track_manually(url.as_str().to_string());
                         } else {
@@ -1541,10 +1548,16 @@ pub fn resolve_path<R: Runtime>(
                         }
                     }
                 } else {
-                    log::debug!("Failed to create NSURL from URL: {}, ignoring security-scoped resource access request", url.as_str());
+                    log::debug!(
+                        "Failed to create NSURL from URL: {}, ignoring security-scoped resource access request",
+                        url.as_str()
+                    );
                 }
             } else {
-                log::debug!("Security-scoped resource already active for URL: {} (started via start_accessing_security_scoped_resource), skipping", url.as_str());
+                log::debug!(
+                    "Security-scoped resource already active for URL: {} (started via start_accessing_security_scoped_resource), skipping",
+                    url.as_str()
+                );
             }
         }
     }

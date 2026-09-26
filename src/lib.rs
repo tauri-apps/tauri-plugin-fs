@@ -22,10 +22,10 @@ use std::sync::Mutex;
 
 use serde::Deserialize;
 use tauri::{
+    AppHandle, DragDropEvent, Manager, RunEvent, Runtime, WindowEvent,
     ipc::ScopeObject,
     plugin::{Builder as PluginBuilder, TauriPlugin},
     utils::{acl::Value, config::FsScope},
-    AppHandle, DragDropEvent, Manager, RunEvent, Runtime, WindowEvent,
 };
 
 #[cfg(target_os = "android")]

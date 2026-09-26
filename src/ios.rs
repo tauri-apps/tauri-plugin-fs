@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use serde::de::DeserializeOwned;
-use tauri::{plugin::PluginApi, AppHandle, Runtime};
+use tauri::{AppHandle, Runtime, plugin::PluginApi};
 
 use crate::{FilePath, OpenOptions};
 
@@ -69,7 +69,10 @@ impl<R: Runtime> Fs<R> {
                         }
                     }
                 } else {
-                    log::debug!("Failed to create NSURL from URL: {}, ignoring security-scoped resource access request", url_string);
+                    log::debug!(
+                        "Failed to create NSURL from URL: {}, ignoring security-scoped resource access request",
+                        url_string
+                    );
                 }
 
                 // Convert URL to path and open the file

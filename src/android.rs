@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 use serde::de::DeserializeOwned;
-use tauri::{plugin::PluginApi, AppHandle, Runtime};
+use tauri::{AppHandle, Runtime, plugin::PluginApi};
 
-use crate::{models::*, FilePath, OpenOptions};
+use crate::{FilePath, OpenOptions, models::*};
 
 const PLUGIN_IDENTIFIER: &str = "com.plugin.fs";
 
