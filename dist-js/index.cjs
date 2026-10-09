@@ -734,7 +734,9 @@ async function writeFile(path, data, options) {
             read: false,
             create: true,
             write: true,
-            ...options
+            ...options,
+            // overwrite the previous contents, like when writing a buffer
+            truncate: !options?.append
         });
         const reader = data.getReader();
         try {
