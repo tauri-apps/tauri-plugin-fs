@@ -295,7 +295,7 @@ class FileHandle extends Resource {
      *
      * @example
      * ```typescript
-     * import { open, write, BaseDirectory } from '@tauri-apps/plugin-fs';
+     * import { open, BaseDirectory } from '@tauri-apps/plugin-fs';
      * const encoder = new TextEncoder();
      * const data = encoder.encode("Hello world");
      * const file = await open("bar.txt", { write: true, baseDir: BaseDirectory.AppLocalData });
@@ -608,7 +608,7 @@ async function remove(path, options) {
  * @example
  * ```typescript
  * import { rename, BaseDirectory } from '@tauri-apps/plugin-fs';
- * await rename('avatar.png', 'deleted.png', { oldPathBaseDir: BaseDirectory.App, newPathBaseDir: BaseDirectory.AppLocalData });
+ * await rename('avatar.png', 'deleted.png', { oldPathBaseDir: BaseDirectory.AppData, newPathBaseDir: BaseDirectory.AppLocalData });
  * ```
  *
  * @param oldPath The path of the file or directory to rename.
